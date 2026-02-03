@@ -4,5 +4,5 @@ def count_pass(scores):
     for s in scores:
         if s>=60:
             cnt+=1
-#最初にcntがNoneの時の対応を考えていたが、3行に0を代入しているので、Noneにはならない
+    #最初にcntがNoneの時の対応を考えていたが、3行に0を代入しているので、Noneにはならない
     return cnt

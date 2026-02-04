@@ -28,3 +28,51 @@
 #条件下での平均 → calc_passed_avg.py
 #条件下での最大値 → passed_score_max.py
 #Noneチェック → check_none_result.py
+
+"""
+2026-03-04
+内容：
+・条件付きで最大値を求める処理を実装
+・None を使って「該当なし」を表現
+・関数の戻り値を if 文で分岐する処理を復習
+・戻り値チェックの重要性を理解
+"""
+#Truthy / Falsyを用いたif文
+data = []
+if data:
+    print("OK")
+else:
+    print("NG")
+
+#Noneチェック関数
+def check_none(x):
+    if x is None:       #条件がxだけだとfalseyチェックになり、None以外の中身のない配列などもはじかれてしまう
+        print("Noneです")
+    else:
+        print("値があります")
+
+#Noneと空の区別
+def judge(value):
+    if value is None:
+        print("None")
+    elif not value:
+        print("空")
+    else:
+        print("中身あり")
+
+#点数判定
+score = 78
+if score >= 90:
+    print("S")
+elif score >= 60:   #90点以上はSなので、ここの条件で書かなくてよい
+    print("合格")
+else:
+    print("不合格")
+
+#名前チェック関数（None または空文字）
+def greet(name):
+    if not name:
+        print("名前を入力してください")
+    else:
+        print(f"こんにちは、{name}さん")    #f文を使うときはf文の外側に""はいらない
+

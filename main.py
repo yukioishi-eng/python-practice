@@ -43,3 +43,29 @@
 #Noneと空の区別 → basics/none_and_empty.py
 #点数判定 → basics/score_judgement.py
 #名前チェック関数（None または 空文字）→ basics/name_check.py
+
+"""
+2026-02-05
+内容：
+・for文とif文を組み合わせて、条件に合う要素を抽出する処理を実装
+・条件に合う値が見つからない場合、None を返す関数を作成
+・関数の戻り値を受け取り、None チェックで安全に分岐する処理を復習
+
+"""
+#最初に60以上の点数を返す関数
+def find_pass(scores):
+    for s in scores:
+        if s>=60:
+            return s
+    #returnがされたら関数の処理が終了するので、breakはいらない
+    return None     #60点以上がないときにNoneを返す
+
+print(find_pass([45, 50]))
+print(find_pass([45, 72, 88]))
+scores = [45, 50, 59]
+
+result = find_pass(scores)
+if result is None:
+    print("合格者なし")
+else:
+    print(f"合格者あり：{result}点")

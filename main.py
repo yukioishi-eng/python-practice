@@ -37,42 +37,8 @@
 ・関数の戻り値を if 文で分岐する処理を復習
 ・戻り値チェックの重要性を理解
 """
-#Truthy / Falsyを用いたif文
-data = []
-if data:
-    print("OK")
-else:
-    print("NG")
-
-#Noneチェック関数
-def check_none(x):
-    if x is None:       #条件がxだけだとfalseyチェックになり、None以外の中身のない配列などもはじかれてしまう
-        print("Noneです")
-    else:
-        print("値があります")
-
-#Noneと空の区別
-def judge(value):
-    if value is None:
-        print("None")
-    elif not value:
-        print("空")
-    else:
-        print("中身あり")
-
-#点数判定
-score = 78
-if score >= 90:
-    print("S")
-elif score >= 60:   #90点以上はSなので、ここの条件で書かなくてよい
-    print("合格")
-else:
-    print("不合格")
-
-#名前チェック関数（None または空文字）
-def greet(name):
-    if not name:
-        print("名前を入力してください")
-    else:
-        print(f"こんにちは、{name}さん")    #f文を使うときはf文の外側に""はいらない
-
+#Truthy / Falsyを用いたif文 → truthy_falsy_if.py
+#Noneチェック関数 → none_check.py
+#Noneと空の区別 → none_and_empty.py
+#点数判定 → score_judgement.py
+#名前チェック関数（None または 空文字）→ name_check.py

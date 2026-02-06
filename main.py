@@ -52,3 +52,102 @@
 ・関数の戻り値を受け取り、None チェックで安全に分岐する処理を復習
 """
 #最初に60以上の点数を返す関数 → first_pass_score.py
+
+"""
+2026-02-06
+内容：
+・辞書（名前 → 点数）を使った条件付きデータ抽出の復習
+・単一結果では None、複数結果では空リスト [] を返す設計の使い分けを理解
+・next(iter(dict)) を用いた初期値設定の考え方を確認
+・最高得点者が複数いる場合に全員を返す処理を実装
+・max() を用いた Pythonicな最大値取得方法を学習
+・max(dict) / max(dict.values()) / max(dict, key=...) の違いを理解
+"""
+#辞書から60点以上の人の名前を表示
+scores = {
+    "Alice": 58,
+    "Bob": 72,
+    "Charlie": 90,
+    "Diana": 45
+}
+passed_member = []
+for name, score in scores.items():    #辞書でキーと値を同時に使いたいときは.items()が必要
+    if score >= 60 :
+        passed_member.append(name)
+print(passed_member)
+
+#60点以上の中で最高得点の人の名前を返す関数
+scores = {
+    "Alice": 58,
+    "Bob": 72,
+    "Charlie": 90,
+    "Diana": 45
+}
+def find_top_student(scores):
+    passed_members = {}
+    for name, score in scores.items():
+        if score >= 60 :
+            passed_members[name]=score
+    if not passed_members:
+        return None
+    
+    max_name = next(iter(passed_members))
+    max_score = passed_members[max_name]
+    #辞書で最初のキーが知りたいときはイテレータにしたあとにnext()
+    #イテレータは順番に要素を取り出せるオブジェクト
+
+    for name, score in passed_members.items():
+        if score > max_score:
+            max_score = score
+            max_name = name
+    return max_name
+
+result = find_top_student(scores) 
+if result is None:
+    print("合格者なし")
+else:
+    print(f"最高得点者は{result}です")  
+
+#最高得点の人が複数いる場合の処理
+scores = {
+    "Alice": 58,
+    "Bob": 90,
+    "Charlie": 90,
+    "Diana": 45
+}
+def find_special_students(scores):
+    max_score = scores[next(iter(scores))]
+    for name, score in scores.items():
+        if score > max_score:
+            max_score = score
+    if max_score < 60:
+        return []
+    
+    #先に最高得点を求めて最高得点と同じ得点の人の名前をリストに入れる
+    max_students = []
+    for name, score in scores.items():
+        if score == max_score:
+            max_students.append(name)
+    return max_students
+
+print(find_special_students(scores))
+
+#max()を用いたPythonicな処理
+scores = {
+    "Alice": 80,
+    "Bob": 90,
+    "Charlie": 90,
+    "David": 50
+}
+def find_top_students(scores, min_score):   #引数に合格点min_scoreをとる
+    passed_students = {}
+    for name, score in scores.items():
+        if score >= min_score:
+            passed_students[name] = score
+    if not passed_students:
+        return []
+    max_score = max(passed_students.values())  #辞書のキーとバリューを知りたいときは.keys(),.value()
+    
+    return [name for name, score in passed_students.items() if score == max_score]
+    
+print(find_top_students(scores, 46))

@@ -66,3 +66,98 @@
 #60点以上の中で最高得点の人の名前を返す関数 → find_top_student.py
 #最高得点の人が複数いる場合の処理 → find_top_students.py
 #max()を用いたPythonicな処理 → find_top_students_pythonic.py
+
+"""
+2026-02-07
+内容：
+型ヒント（dict[str, int], list[str], str | None）の書き方を練習
+docstring を用いて関数の役割・引数・戻り値を明示
+フォルダ分割を行い、別ファイルの関数を import して使用
+if __name__ == "__main__": を使い、実行用コードとロジックを分離
+"""
+#型ヒント＋docstring（読み手を意識したコード）
+scores = {
+    "Alice": 80,
+    "Bob": 90,
+    "Charlie": 90,
+    "David": 50
+}
+def find_top_students(scores: dict[str, int], min_score: int)-> list[str]:   #引数は変数: 型 、返り値は型を書く
+
+    #docstringはコードの表紙、概要と引数、返り値の説明を書く
+    """
+    Return the names of students with the highest score
+    among those who meet the minimum score requirement.
+
+    Args:
+        scores (dict[str, int]): Dictionary mapping student names to scores
+        min_score (int): Minimum score required to be considered
+
+    Returns:
+        list[str]: List of student names with the highest score
+    """   
+    passed_students = {}
+    for name, score in scores.items():
+        if score >= min_score:
+            passed_students[name] = score
+    if not passed_students:
+        return []
+    max_score = max(passed_students.values())  
+    
+    return [name for name, score in passed_students.items() if score == max_score]
+
+#型ヒントの設定練習
+def calc_total(numbers: list[int]) -> int:
+    total = 0
+    for n in numbers:
+        total += n
+    return total
+
+def get_passed_names(scores: dict[str, int]) -> list[str]:
+    """
+    Return the names of students who scored 60 points or higher.
+
+    Args:
+        scores (dict[str, int]): Dictionary mapping student names to scores.
+
+    Returns:
+        list[str]: Names of students who passed.
+    """
+    passed_students = []
+    for name, score in scores.items():
+        if score >= 60:
+            passed_students.append(name)
+
+    return passed_students
+
+#ファイル分割 ＋ import
+from basics.students import get_passed_names
+
+scores = {
+    "Alice": 80,
+    "Bob": 90,
+    "Charlie": 55,
+    "David": 40
+}
+
+passed = get_passed_names(scores)
+
+if passed:
+    print("合格者:", passed)
+else:
+    print("合格者なし")
+
+from basics.students import find_top_student
+
+top_student = find_top_student(scores)
+
+if top_student:
+    print("最高得点者:", top_student)
+else:
+    print("該当なし")
+
+#if __name__ == "__main__"の使い方
+import students
+print("main running")
+#students.pyのif __name__ == "__main__は直接実行されないと条件を満たさない
+#今回はmain.pyからの実行なので、print("students loaded")は実行されない

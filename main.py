@@ -92,3 +92,136 @@ Optional の返り値を呼び出し側で安全に扱う方法
 #Optional を用いた関数 → first_over_threshold_optional.py
 #Optional と空リストの使い分け → students_above_threshold_list.py
 #Optional と空リストの組み合わせ → top_scorers_optional_list.py
+
+"""
+2026-02-09
+内容：
+・Optional の意味と使いどころの理解
+・raise ValueError の書き方と設計意図
+・Optional と raise の使い分け判断
+・型ヒントと返り値設計の整合性チェック
+"""
+#通常の書き方と内包表記の書き方の比較
+def passed_students_for(scores: dict[str, int], min_score: int) -> list[str]:
+    """
+    Return a list of student names with scores >= min_score.
+    """
+    passed_students = []
+    for name, score in scores.items():
+        if score >= min_score:
+            passed_students.append(name)
+    return passed_students
+
+def passed_students_pythonic(scores: dict[str, int], min_score: int) -> list[str]:
+    """
+    Return a list of student names with scores >= min_score.
+    """
+    return [name for name, score in scores.items() if score >= min_score]
+
+    """
+    内包表記を選ぶとき ✅
+    ・条件が1つ（or とても単純）
+    ・集めるだけ（append 以外の処理がない）
+    ・1行で意味が崩れない
+    ・「一覧を作る」処理
+     → 今回のケースは合っている
+
+    for ループを選ぶとき ✅
+    ・条件が複雑・分岐が多い
+    ・途中でログ・print・例外処理を入れたい
+    ・今後仕様変更が入りそう
+    ・読み手が初学者寄り
+    """
+
+#Optional / 空リスト / 例外 のどれを返すべきか
+    #合格点以上の生徒名リストを返す
+def passed_students(scores: dict[str, int], passing: int) -> list[str]:
+    """
+    Return a list of student names with scores >= passing.
+    """
+    return [name for name, score in scores.items() if score >= passing]
+    """
+    「合格者がいない」は異常ではない
+    Optional にすると None チェックが増えて逆に面倒
+    よって、空リストで返すのが正解
+    """
+
+    #条件を満たすトップスコアの生徒1人を探す
+from typing import Optional
+
+def top_student(scores: dict[str, int], passing: int) -> Optional[str]:
+    """
+    Return the name of the student with the highest score >= passing.
+    Return None if no student meets the condition.
+    """
+    passed_students = {name: score for name, score in scores.items() if score >= passing}
+
+    if not passed_students:
+        return None
+
+    max_score = max(passed_students.values())
+
+    for name, score in passed_students.items():
+        if score == max_score:
+            return name
+    """
+    条件に合う人が必ずいるとは限らない
+    Noneを返す選択肢もある
+    よって、Optionalにするのが正解
+    """
+
+    #点数データが空の場合
+def average_score(scores: dict[str, int]) -> float:
+    """
+    Return the average score.
+    Raise ValueError if scores is empty.
+    """
+    if not scores:
+        raise ValueError("scores is empty")
+    #raiseは処理を終了させてエラーとして返す
+    #raise エラー内容("エラーメッセージ")と書く 
+
+    total = 0
+    cnt = 0
+    for score in scores.values():
+        total += score
+        cnt += 1
+
+    return total / cnt
+
+def average_score(scores: dict[str, int]) -> float:
+    if not scores:
+        raise ValueError("scores is empty")
+    return sum(scores.values()) / len(scores)
+    #合計はsumを使ってpythonicに
+
+#Optionalとraiseの設計判断
+def max_score(scores: dict[str, int]) -> int:
+    """
+    Return the maximum score.
+    Raise ValueError if scores is empty.
+    """
+    if not scores:
+        raise ValueError("scores is empty.")
+    return max(scores.values())
+    """
+    1. Optional を使うべきケース
+    特徴 ）
+    ・見つからないのが 想定内
+    ・呼び出し側が None を普通に処理できる
+    例 ）
+    ・検索結果がない
+    ・条件に合う人がいない
+    ・データはあるけど「該当なし」
+    👉 これは異常じゃない
+
+    2.raise を使うべきケース
+    特徴 ）
+    ・その処理自体が 成立しない
+    ・呼び出し側に「それはおかしい」と伝えたい
+    例 ）
+    ・平均を求めたいのにデータが空
+    ・引数の型・値が意味をなさない
+
+
+

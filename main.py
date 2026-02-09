@@ -89,61 +89,6 @@ if __name__ == "__main__": を使い、実行用コードとロジックを分�
 Pythonic な書き方の理解
 Optional の返り値を呼び出し側で安全に扱う方法
 """
-#Optional を用いた関数
-from typing import Optional
-def first_over_threshold(numbers: list[int], threshold: int) -> Optional[int]:
-    """
-    return first number which more bigger than threshold
-    """
-    for n in numbers:
-        if n >= threshold:
-            return n
-    return None
-
-print(first_over_threshold([10, 20, 30], 25))  # 30
-print(first_over_threshold([1, 2, 3], 10))    # None
-
-#Optional と空リストの使い分け
-def students_above_threshold(scores: dict[str, int], threshold: int) -> list[str]:
-    """
-    Return a list of student names with scores >= threshold.
-    Returns an empty list if no student meets the condition.
-    """
-    passed_students = []
-    for name, score in scores.items():
-        if score >=threshold:
-            passed_students.append(name)
-    return passed_students
-
-scores = {"Alice": 80, "Bob": 90, "Charlie": 90, "David": 50}
-
-print(students_above_threshold(scores, 60))  # ['Alice', 'Charlie']
-print(students_above_threshold(scores, 100)) # []
-
-#Optional と空リストの組み合わせ
-def top_scorers(scores: dict[str, int], min_score: int) -> Optional[list[str]]:
-    """
-    return a list of student names with the greatest score in list.
-    rerurn None if no student meets the condition.
-    """
-    passed_students = {}
-    for name, score in scores.items():
-        if score >= min_score:
-            passed_students[name] = score
-    if not passed_students:
-        return None
-    
-    #最高点はmax()で求める
-    max_score = max(passed_students.values())
-    top_students = []
-    for name, score in passed_students.items():
-        if score == max_score:
-            top_students.append(name)
-    return top_students
-    #forとifが１つずつだったり、単純な構造の時は内包表記で書いた方が読みやすい可能性が高い
-
-result = (top_scorers(scores, 69))
-if result is None:
-    print("No student meets the condition.")
-else:
-    print("Top students:",", ".join(result))    #括弧をなくしたいときは"(区切りたい文字列)".join(対象物)
+#Optional を用いた関数 → first_over_threshold_optional.py
+#Optional と空リストの使い分け → students_above_threshold_list.py
+#Optional と空リストの組み合わせ → top_scorers_optional_list.py

@@ -105,6 +105,91 @@ Optional の返り値を呼び出し側で安全に扱う方法
 #Optional / 空リスト / 例外 のどれを返すべきか → how_to_return_values.py
 #Optionalとraiseの設計判断 → optional_vs_raise_design.py
 
+"""
+2026-02-10
+内容：
+dict の基本構造（key: value）と dict in dict の扱い方
+値と型の検証方法（isinstance）
+isinstance(value, int) を用いたデータ不整合チェック
+Optional と例外の設計判断（「起こりうる結果なし」→ None、「データ不整合・成立しない状態」→ raise ValueError）
+年齢制限つきユーザー取得関数を設計・実装
+存在チェック → データ検証 → ビジネス条件 の順で if を構成
+コメントの書き方の指針（判断理由・意味 → 改行コメント、補足説明 → 横コメント）
+"""
+#ユーザー検索APIのコアロジック
+data = {
+    "apple": {"price": 120, "stock": 5},
+    "banana": {"price": 80, "stock": 0},
+}
+    #今回の辞書は：でkeyとvalueを分けている
+    
+    #appleの値段
+price = data["apple"]["price"]
+    #bananaの在庫
+stock = data["banana"]["stock"]
+    #"orange" が data に 存在するかどうかを if で判定
+if "orange" in data:
+    pass
+    #banana は 存在するが、その中に "price" キーが なかった場合
+if  "price" not in data["banana"]:   #not "price" ~でも動くが、"price" not in ~の方が読みやすい
+    pass
 
+print(price)
+print(stock)
+
+    #辞書から名前を探す
+users = {
+    "u001": {"name": "Alice", "age": 20},
+    "u002": {"name": "Bob", "age": 17},
+    "u003": {"name": "Charlie", "age": 25},
+}
+
+from typing  import Optional
+def get_user_name(users: dict[str, dict[str, int | str]], user_id: str) -> Optional[str]:
+    # 1. user_id が存在しない
+    if user_id not in users:    #辞書内の要素の有無を調べるときの書き方
+        return None
+
+    user_info = users[user_id]
+
+    # 2. name キーがない
+    if "name" not in user_info:
+        raise ValueError("user data has no 'name' field")
+
+    # 3. 正常
+    return user_info["name"]
+
+print (get_user_name(users, "u001"))
+    
+#年齢制限つきユーザー取得
+users = {
+    "u001": {"name": "Alice", "age": 20},
+    "u002": {"name": "Bob", "age": 17},
+    "u003": {"name": "Charlie", "age": 25},
+}
+from typing import Optional
+def get_adult_user_name(
+    users: dict[str, dict[str, int | str]],
+    user_id: str,
+    adult_age: int = 18
+) -> Optional[str]:
+    #user_idがないとき
+    if user_id not in users:
+        return None
+
+    #"age"の項目がないまたは"age"がint型じゃないとき
+    info = users[user_id]
+    if "age" not in info or not isinstance(info["age"], int):      #値と型の正誤を考えるときはisinstance(値, 型)
+        raise ValueError("invalid age data")
+
+    #18歳未満の時
+    if info["age"] < adult_age:
+        return None
+
+    #"name"がないとき
+    if "name" not in info:
+        raise ValueError("invalid name data")
+
+    return info["name"]
 
 

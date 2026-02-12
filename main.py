@@ -131,66 +131,6 @@ None と raise ValueError の使い分け
 重複関数呼び出しを避ける設計
 責務分離を意識した関数構成
 """
-#Optionalを返す関数を組み合わせる
-from typing import Optional
+#Optionalを返す関数を組み合わせる → optional_function_composition.py 
+#3段の組み合わせ → optional_three_step_chain.py
 
-#ユーザー情報を探す関数
-def get_user(users: dict[str, dict], user_id: str) -> Optional[dict]:
-    if user_id not in users:
-        return None
-    return users[user_id]
-
-#名前を返す関数
-def get_user_name(user: dict) -> Optional[str]:
-    if "name" not in user:
-        return None
-    return user["name"]
-#組み合わせる
-def get_user_name_by_id(
-    users: dict[str, dict],
-    user_id: str
-) -> Optional[str]:
-    user = get_user(users, user_id)
-    if user is None:
-        return None
-    
-    return get_user_name(user)
-
-#3段の組み合わせ
-from typing import Optional
-
-def get_user(users: dict[str, dict], user_id: str) -> Optional[dict]:
-    return users.get(user_id)    #.getはキーがあれば値、ないときはNoneを返す辞書専用のメソッド
-
-def get_profile(user: dict) -> Optional[dict]:
-    return user.get("profile")
-
-def get_display_name(profile: dict) -> Optional[str]:
-    return profile.get("display_name")
-    
-
-users = {
-    "u001": {
-        "profile": {
-            "display_name": "Alice"
-        }
-    },
-    "u002": {},
-}
-def get_display_name_by_id(
-    users: dict[str, dict],
-    user_id: str
-) -> Optional[str]:
-    user_info = get_user(users, user_id)
-    if user_info is None:
-        return None
-    
-    user_profile = get_profile(user_info)
-    if user_profile is None:
-        raise ValueError("profile does not exist")
-    
-    user_name = get_display_name(user_profile)  
-    #変数で置いた方が関数の呼び出しが少ない
-    if user_name is None:
-        raise ValueError("name does not exist")
-    return user_name

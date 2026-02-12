@@ -134,3 +134,106 @@ None と raise ValueError の使い分け
 #Optionalを返す関数を組み合わせる → optional_function_composition.py 
 #3段の組み合わせ → optional_three_step_chain.py
 
+"""
+2026-02-12
+内容：
+classの概要の理解
+コンストラクタでのバリデーション実装
+メソッドの self の役割を理解
+updateメソッドの設計を学習
+privateメソッド（_validate_xxx）の設計意図を理解
+クラス設計での責務整理を意識できるようになった
+"""
+#classの概要、演習
+    #classは型、設計図
+class Dog:
+    def __init__(self, name: str):    #__init__はインスタンス(設計図から作った作品　ex. dog1)が作られるときに最初に実行する処理
+        self.name = name              #selfはインスタンス自身
+
+    def bark(self) -> str:
+        return f"{self.name} says woof!"
+
+dog1 = Dog("Pochi")
+print(dog1.bark())
+
+    #Dogに年齢を追加
+class Dog:
+    def __init__(self, name: str, age: int):
+        #nameがstr型以外または空文字のときエラー
+        if not isinstance(name, str) or  name == "":    #空文字の条件がNoneだと他に0とNoneも含まれてしまう
+            raise ValueError("name is invalid")
+            #0<=age<=30以外またはint型でないときエラー
+        if not isinstance(age, int) or age < 0 or age > 30 :    #型チェックを先にやった方が早く止められる
+            raise ValueError("age is invalid")
+        
+        self.name = name
+        self.age = age
+    
+    #private メソッド（クラスの内部だけで使うことを意図したメソッド）としても書ける
+class Dog:
+    def __init__(self, name: str, age: int):
+        self._validate_name(name)
+        self._validate_age(age)
+        self.name = name
+        self.age = age
+
+    def _validate_name(self, name: str):
+        if not isinstance(name, str) or name == "":
+            raise ValueError("name is invalid")
+
+    def _validate_age(self, age: int):
+        if not isinstance(age, int) or age < 0 or age > 30:
+            raise ValueError("age is invalid")
+    
+    #将来、ageを変更する機能を付け加えるときのためのメソッド
+    def update_age(self, new_age: int):
+        self._validate_age(new_age)
+        self.age = new_age
+        
+
+    def introduce(self) -> str:
+        return f"I am {self.name}. I am {self.age} years old."
+    
+    def get_life_stage(self) -> str:
+        if self.age >= 3:
+            return "adult"
+        return "puppy"
+
+
+dog2 = Dog("Pochi", 4)
+print(dog2.introduce())
+print(dog2.get_life_stage())
+
+#classの演習
+class User:
+    def __init__(self, name: str, age: int, email: str):
+        self._validate_name(name)
+        self._validate_age(age)
+        self._validate_email(email)
+
+        self.name = name
+        self.age = age
+        self.email = email
+    
+    def _validate_name(self, name: str):
+        if not isinstance(name, str) or name == "":
+            raise ValueError("name is invalid")
+    def _validate_age(self, age: int):
+        if not isinstance(age, int) or age < 0 or age > 150:
+            raise ValueError("age is invalid")
+    def _validate_email(self, email: str):
+        if not isinstance(email, str) or email == "" or "@" not in email:
+            raise ValueError("email is invalid")
+
+    def update_name(self, new_name: str):
+        self._validate_name(new_name)
+        self.name = new_name
+    def update_age(self, new_age: int):
+        self._validate_age(new_age)
+        self.age = new_age
+    def update_email(self, new_email: str):
+        self._validate_email(new_email)
+        self.email = new_email
+
+        
+        

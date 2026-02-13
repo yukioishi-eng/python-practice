@@ -147,5 +147,132 @@ privateメソッド（_validate_xxx）の設計意図を理解
 #classの概要 → class_basics_dog.py
 #classの演習 → user_class_design.py
 
-        
-        
+"""
+2026-02-13
+内容：
+@property を使うことで、メソッドを属性のように読み取れることを理解した
+getter は属性の「読み取り時」に自動で呼び出される処理であることを理解した
+self.age = value は通常の代入ではなく、setter を経由することを理解した
+実際の保存は _age のような private 属性に行う必要がある理由（無限ループ防止）を理解した
+_name, _age, _email のように内部保存用属性と公開用 property を分離する設計を学んだ
+初期化 (__init__) と更新の両方で setter を使うことで、一貫した validation を保証できることを理解した
+name, age, email を property + setter + validation で管理する User クラスを実装した
+カプセル化（内部状態を直接触らせず、安全な窓口だけ公開する設計）の基本を理解した
+"""
+#propertyを使ったclass処理
+class User:
+    def __init__(self, age: int):
+        self.age = age    #@pripertyがあると、この文の意味は代入ではなく、setterの呼び出しという意味になる
+    
+
+    @property
+    def age(self):
+        return self._age    #_をつけないと、@propertyのreturn self.ageによって、@propertyが繰り返されちゃう
+    #getter(@propertyの処理)は値を読み取るときに発動する ex. print(user.age)
+
+    @age.setter
+    def age(self, value):
+        self._validate_age(value)
+        self._age = value
+    #setterは値を代入するときに発動する ex. user.age = 4
+
+    def _validate_age(self, age: int):
+        if not isinstance(age, int) or age < 0 or age > 150:
+            raise ValueError("age is invalid")
+
+class Product:
+    def __init__(self, price: int):
+        self.price = price
+    
+    @property
+    def price(self):
+        return self._price
+    
+    @price.setter
+    def price(self, value):
+        self.validate_price(value)
+        self._price = value
+
+    def validate_price(self, price):
+        if price < 0:
+            raise ValueError("price is invalid")
+
+class Person:
+    def __init__(self, age: int):
+        self.age = age
+    
+    @property
+    def age(self):
+        return self._age
+    
+    @age.setter
+    def age(self, value):
+        self.validate(value)
+        self._age = value
+
+
+    def validate(self, age: int):
+        if not isinstance(age, int) or age < 0 or age > 150:
+            raise ValueError("age is invalid")
+        print("setter called")
+p=Person(20)
+p.age = 30
+#__init__はp=Person(20)のようにインスタンスが作られたときに最初に動作するもの
+#呼び出しや読み取りの時は直接getterやsetterが呼び出されており、__init__は動作していない
+
+class User:
+    def __init__(self, name: str, age: int, email: str):
+        self.age = age
+        self.name = name
+        self.email = email
+    
+    @property
+    def age(self):
+        return self._age
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def email(self):
+        return self._email
+    
+    @age.setter
+    def age(self, value):
+        self._validate_age(value)
+        self._age = value
+
+    @name.setter
+    def name(self, value):
+        self._validate_name(value)
+        self._name = value
+
+    @email.setter
+    def email(self, value):
+        self._validate_email(value)
+        self._email = value
+
+    def _validate_age(self, age):
+        if not isinstance(age, int) or age < 0 or age > 150:
+            raise ValueError("age is invalid")
+    def _validate_name(self, name):
+        if not isinstance(name, str) or name == "":
+            raise ValueError("name is invalid")
+    def _validate_email(self, email):
+        if not isinstance(email, str) or email == "" or @ not in email:
+            raise ValueError("email is invalid")
+
+user = User("Taro", 20, "taro@example.com")
+
+print(user.name)
+print(user.age)
+print(user.email)
+
+user.age = 25
+user.name = "Jiro"
+user.email = "jiro@example.com"
+
+print(user.name)
+print(user.age)
+print(user.email)

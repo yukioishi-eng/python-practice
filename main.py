@@ -196,87 +196,25 @@
 ・不整合を防ぐために「変更前チェック」を意識した
 ・動くコードよりも「設計の正しさ」が重要だと学んだ
 """
-#実務を意識した設計演習
-    #userの残金と在庫の組み合わせた購入システム
+#実務を意識した設計演習 → purchase_service_design.py
+
+"""
+2026-02-18
+内容：
+オブジェクト指向での責務分離を意識して設計を行った
+副作用（状態変更）の順番によって不整合が起こることを学んだ
+例外クラスをドメインごとに定義する重要性を確認
+クーポン割引ロジックを独立したクラスに分離
+コードをシンプルに書くことで、エラー箇所を特定しやすくなると理解
+"""
+#テストしやすい設計
 class OutOfStockError(Exception):
     pass
+
 
 class InsufficientBalanceError(Exception):
     pass
 
-class Product:
-    def __init__(self, name: str, price: int, stock: int):
-        self._validate_name(name)
-        self._validate_price(price)
-        self._validate_stock(stock)
-        self._name = name
-        self._price = price
-        self._stock = stock    #setterを作らないので、直接代入
-
-    
-    @property
-    def name(self) -> str:
-        return self._name
-    
-    @property
-    def price(self) -> int:
-        return self._price
-    
-    @property
-    def stock(self) -> int:
-        return self._stock
-    
-    def decrease_stock(self) -> None:
-        if self._stock == 0:
-            raise OutOfStockError("out of stock")
-        self._stock -= 1
-
-    
-    def _validate_name(self, name):
-        if not isinstance(name, str) or name == "":
-            raise ValueError("name is invalid")
-    def _validate_price(self, price):
-        if not isinstance(price, int) or price < 1:
-            raise ValueError("price is invalid")
-    def _validate_stock(self, stock):
-        if not isinstance(stock, int) or stock < 1:
-            raise ValueError("price is invalid")
-    
-class User:
-    def __init__(self, amount: int):
-        self._validate_amount(amount)
-        seof._anount = amount
-    
-    @property
-    def amount(self) -> int:
-        return self._amount
-    
-    def withdraw(self, amount: int) -> None:
-        if amount > self._amount:
-            raise InsufficientBalanceError("insufficient balance")
-        self._amount -= amount
-
-    
-    def _validate_amount(self, amount):
-        if not isinstance(amount, int) or amount < 0:
-            raise ValueError("amount is invalid")
-
-class PurchaseService: 
-    def purchase(self, user, product) -> None:
-        if product.stock == 0:
-            raise OutOfStockError("out of stock")
-        if user.amount < product.price:
-            raise InsufficientBalanceError("insufficient balance")
-        #不整合状態(片方だけ処理が実行される)を防ぐ
-        product.decrease_stock()
-        user.withdraw(product.price)
-
-    #ポイント利用付き購入
-class OutOfStockError(Exception):
-    pass
-
-class InsufficientBalanceError(Exception):
-    pass
 
 class User:
     def __init__(self, balance: int, points: int):
@@ -288,35 +226,157 @@ class User:
     @property
     def balance(self) -> int:
         return self._balance
-    
+
     @property
     def points(self) -> int:
         return self._points
-    
+
     def can_pay(self, amount: int) -> bool:
         return self._balance + self._points >= amount
 
     def pay(self, amount: int) -> None:
         if not self.can_pay(amount):
             raise InsufficientBalanceError("insufficient balance")
-        if self.points >= amount:
+
+        if self._points >= amount:
             self._points -= amount
         else:
-            paying = amount - self.points
-            self.points = 0
-            self._balance -= paying
-    
-    def _validate_balance(self, balance):
+            remaining = amount - self._points
+            self._points = 0
+            self._balance -= remaining
+
+    def _validate_balance(self, balance: int) -> None:
         if not isinstance(balance, int) or balance < 0:
             raise ValueError("balance is invalid")
-    def _validate_points(self, points):
+
+    def _validate_points(self, points: int) -> None:
         if not isinstance(points, int) or points < 0:
             raise ValueError("points is invalid")
-    
+
+
 class Product:
     def __init__(self, price: int, stock: int):
         self._validate_price(price)
-        self.validate_stock(stock)
+        self._validate_stock(stock)
+        self._price = price
+        self._stock = stock
+
+    @property
+    def price(self) -> int:
+        return self._price
+
+    @property
+    def stock(self) -> int:
+        return self._stock
+
+    def decrease_stock(self) -> None:
+        if self._stock == 0:
+            raise OutOfStockError("out of stock")
+        self._stock -= 1
+
+    def _validate_price(self, price: int) -> None:
+        if not isinstance(price, int) or price < 1:
+            raise ValueError("price is invalid")
+
+    def _validate_stock(self, stock: int) -> None:
+        if not isinstance(stock, int) or stock < 0:
+            raise ValueError("stock is invalid")
+
+class Logger:
+    def log(self, message: str) -> None:
+        print(message)
+
+class PurchaseService:
+    def __init__(self, logger: Logger):
+        self._logger = logger
+    #loggerを外部から受け取る
+
+    def purchase(self, user: User, product: Product) -> None:
+        if not user.can_pay(product.price):
+            raise InsufficientBalanceError("insufficient balance")
+
+        product.decrease_stock()
+        user.pay(product.price)
+        self._logger.log(f"User purchased product for {product.price}")
+
+
+    #メール通知付き注文キャンセル
+class CancelCompletedError(Exception):
+    pass
+
+class Order:
+    def __init__(self, price: int, is_canceled: bool):
+        self._validate_price(price)
+        self._validate_is_canceled(is_canceled)
+        self._price = price
+        self._is_canceled = is_canceled
+    
+    @property
+    def price(self) -> int:
+        return self._price
+
+    @property
+    def is_canceled(self) -> bool:
+        return self._is_canceled
+    
+    def cancel(self) -> None:
+        if self._is_canceled:
+            raise CancelCompletedError("cancellation has been made")
+        self._is_canceled = True
+    
+    def _validate_price(self, price) -> None:
+        if not isinstance(price, int) or price < 1:
+            raise ValueError("price is invalid")
+    def _validate_is_canceled(self, is_canceled) -> None:
+        if not isinstance(is_canceled, bool) :
+            raise ValueError("is_canceled is invalid")
+
+class User:
+    def __init__(self, balance: int):
+        self._validate_balance(balance)
+        self._balance = balance
+    
+    @property
+    def balance(self) -> int:
+        return self._balance
+    
+    def pay(self, price: int) -> None:
+        self._balance += price
+    
+    def _validate_balance(self, balance) -> None:
+        if not isinstance(balance, int) or balance < 0:
+            raise ValueError("balance is invalid")
+
+class Notifier:
+    def notify(self, message: str) -> None:
+        self._validate_message(message)
+        print(message)
+    
+    def _validate_message(self, message) -> None:
+        if not isinstance(message, str) or message == "":
+            raise ValueError("message is invalid")
+
+
+class CancelService:
+    def __init__(self, notifier: Notifier):
+        self._notifier = notifier
+
+    def cancel(self, user: User, order: Order):
+        order.cancel()
+        user.pay(order.price)
+        self._notifier.notify("cancellation is made")
+
+    #クーポン適用付き注文確定
+class OutOfStockError(Exception):
+    pass
+
+class InsufficientBalanceError(Exception):
+    pass
+
+class Product:
+    def __init__(self, price: int, stock: int):
+        self._validate_price(price)
+        self._validate_stock(stock)
         self._price = price
         self._stock = stock
 
@@ -329,29 +389,66 @@ class Product:
         return self._stock
     
     def decrease_stock(self) -> None:
-        if self.
+        if self._stock == 0:
+            raise OutOfStockError("Out of stock")
         self._stock -= 1
-    
+
     def _validate_price(self, price):
         if not isinstance(price, int) or price < 1:
             raise ValueError("price is invalid")
-    def validate_stock(self, stock):
+    def _validate_stock(self, stock):
         if not isinstance(stock, int) or stock < 0:
             raise ValueError("stock is invalid")
 
-class PurchaseService:
-    def purchase(self, user, product):
-        if product.price > user.balance + user.points:
-            raise InsufficientBalanceError("insufficient balance and points")
-        if product.stock == 0:
-            raise OutOfStockError("out of stock")
+class User:
+    def __init__(self, balance: int):
+        self._validate_balance(balance)
+        self._balance = balance
+    
+    @property
+    def balance(self) -> int:
+        return self._balance
+    
+    def pay(self, amount: int) -> None:
+        if self._balance < amount:
+            raise InsufficientBalanceError("insufficient balance")
+        self._balance -= amount
+    
+    def _validate_balance(self, balance) -> None:
+        if not isinstance(balance, int) or balance < 0:
+            raise ValueError("balance is invalid")
+
+class Coupon:
+    def __init__(self, discount_amount: int):
+        self._validate_discount_amount(discount_amount)
+        self._discount_amount = discount_amount
+    
+    @property
+    def discount_amount(self) -> int:
+        return self._discount_amount
+
+    def apply(self, price) -> int:
+        if self._discount_amount > price:
+            raise ValueError("price or discount_amount is invalid")
+        return price - self._discount_amount
+    
+    def _validate_discount_amount(self, discount_amount) -> None:
+        if not isinstance(discount_amount, int) or discount_amount < 1:
+            raise ValueError("discount_amount is invalid")
+
+class ReceiptSender:
+    def send(self, message: str) -> None:
+        print(message)
+
+class CheckoutService:
+    def __init__(self, receipt_sender: ReceiptSender):
+        self._receipt_sender = receipt_sender
+
+    def checkout(self, user: User, product: Product, coupon: Coupon):
+        discounted_price = coupon.apply(product.price)
+        user.pay(discounted_price)
         product.decrease_stock()
+       
+        self._receipt_sender.send("Payment has been completed")
+    #不整合状態になる可能性があるので、順番には気を付ける
 
-        user.point_pay(product.price)
-        user.pay(product.price)
-
-"""
-間違えやすい点
-・__init__での代入忘れ
-・self忘れ
-・責務の書き忘れ

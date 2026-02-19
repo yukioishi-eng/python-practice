@@ -208,3 +208,159 @@
 コードをシンプルに書くことで、エラー箇所を特定しやすくなると理解
 """
 #テストしやすい設計 → domain_service_design_practice.py
+"""
+2026-02-19
+内容：
+Order と CheckoutService の責務分離
+状態管理の導入
+Couponを任意にする設計
+"""
+#トランザクションの中心に Order を置く設計
+class OutOfStockError(Exception):
+    pass
+
+class InsufficientBalanceError(Exception):
+    pass
+
+class AlreadyCanceledError(Exception):
+    pass
+
+class Product:
+    def __init__(self, price: int, stock: int):
+        self._validate_price(price)
+        self._validate_stock(stock)
+        self._price = price
+        self._stock = stock
+
+    @property
+    def price(self) -> int:
+        return self._price
+    
+    @property
+    def stock(self) -> int:
+        return self._stock
+    
+    def decrease_stock(self) -> None:
+        if self._stock == 0:
+            raise OutOfStockError("Out of stock")
+        self._stock -= 1
+    
+    def return_product(self) -> None:
+        self._stock += 1
+
+    def _validate_price(self, price):
+        if not isinstance(price, int) or price < 1:
+            raise ValueError("price is invalid")
+    def _validate_stock(self, stock):
+        if not isinstance(stock, int) or stock < 0:
+            raise ValueError("stock is invalid")
+
+class User:
+    def __init__(self, balance: int):
+        self._validate_balance(balance)
+        self._balance = balance
+    
+    @property
+    def balance(self) -> int:
+        return self._balance
+    
+    def pay(self, amount: int) -> None:
+        if self._balance < amount:
+            raise InsufficientBalanceError("insufficient balance")
+        self._balance -= amount
+    
+    def refund(self, amount: int) -> None:
+        self._balance += amount
+    
+    def _validate_balance(self, balance) -> None:
+        if not isinstance(balance, int) or balance < 0:
+            raise ValueError("balance is invalid")
+
+class Coupon:
+    def __init__(self, discount_amount: int):
+        self._validate_discount_amount(discount_amount)
+        self._discount_amount = discount_amount
+    
+    @property
+    def discount_amount(self) -> int:
+        return self._discount_amount
+
+    def apply(self, price) -> int:
+        if self._discount_amount > price:
+            raise ValueError("price or discount_amount is invalid")
+        return price - self._discount_amount
+    
+    def _validate_discount_amount(self, discount_amount) -> None:
+        if not isinstance(discount_amount, int) or discount_amount < 1:
+            raise ValueError("discount_amount is invalid")
+
+class ReceiptSender:
+    def send(self, message: str) -> None:
+        print(message)
+
+class OrderStatus(Enum):
+    CREATED = auto()
+    PAID = auto()
+    CANCELED = auto()
+
+from typing import Optional
+
+class Order:
+    def __init__(self, user: User, product: Product, receipt_sender: ReceiptSender, coupon: Optional[Coupon] = None):
+        self._user = user
+        self._product = product
+        self._coupon = coupon
+        self._receipt_sender = receipt_sender
+        self._status = OrderStatus.CREATED
+        self._paid_amount = 0
+
+    def _ensure_created(self):
+        if self._status != OrderStatus.CREATED:
+            raise ValueError("Order is not in CREATED state")
+    
+    def _ensure_not_canceled(self):
+        if self._status == OrderStatus.CANCELED:
+            raise AlreadyCanceledError()
+    def _ensure_can_pay(self):
+        if self._status == OrderStatus.PAID:
+            raise ValueError("Order already paid")
+        if self._status == OrderStatus.CANCELED:
+            raise ValueError("Order already canceled")
+
+
+    def pay(self):
+        self._ensure_created()
+        self._ensure_can_pay()
+
+        price = self._product.price
+        if self._coupon:
+            price = self._coupon.apply(price)
+
+        self._user.pay(price)
+        self._product.decrease_stock()
+
+        self._paid_amount = price
+        self._status = OrderStatus.PAID
+
+        self._receipt_sender.send("Payment completed")
+
+    def cancel(self):
+        self._ensure_not_canceled()
+
+        if self._status == OrderStatus.PAID:
+            self._user.refund(self._paid_amount)
+            self._product.return_product()
+
+        self._status = OrderStatus.CANCELED
+
+    
+
+class CheckoutService:
+    def __init__(self, receipt_sender: ReceiptSender):
+        self._receipt_sender = receipt_sender
+
+    def create_order(self, user, product, coupon=None) -> Order:
+        return Order(user, product, self._receipt_sender, coupon)
+
+
+

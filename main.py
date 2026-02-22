@@ -214,6 +214,10 @@
 Order と CheckoutService の責務分離
 状態管理の導入
 Couponを任意にする設計
+pytest導入・実行確認
+例外テスト作成
+with pytest.raises() の意味を理解
+成功時／失敗時の副作用確認の重要性を理解
 """
 #トランザクションの中心に Order を置く設計
 class OutOfStockError(Exception):
@@ -297,6 +301,8 @@ class Coupon:
 class ReceiptSender:
     def send(self, message: str) -> None:
         print(message)
+
+from enum import Enum, auto
 
 class OrderStatus(Enum):
     CREATED = auto()

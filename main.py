@@ -201,33 +201,50 @@
 """
 2026-02-18
 内容：
-オブジェクト指向での責務分離を意識して設計を行った
-副作用（状態変更）の順番によって不整合が起こることを学んだ
-例外クラスをドメインごとに定義する重要性を確認
-クーポン割引ロジックを独立したクラスに分離
-コードをシンプルに書くことで、エラー箇所を特定しやすくなると理解
+・オブジェクト指向での責務分離を意識して設計を行った
+・副作用（状態変更）の順番によって不整合が起こることを学んだ
+・例外クラスをドメインごとに定義する重要性を確認
+・クーポン割引ロジックを独立したクラスに分離
+・コードをシンプルに書くことで、エラー箇所を特定しやすくなると理解
 """
 #テストしやすい設計 → domain_service_design_practice.py
 """
 2026-02-19
 内容：
-Order と CheckoutService の責務分離
-状態管理の導入
-Couponを任意にする設計
+・Order と CheckoutService の責務分離
+状・態管理の導入
+Cou・ponを任意にする設計
 pytest導入・実行確認
-例外テスト作成
-with pytest.raises() の意味を理解
-成功時／失敗時の副作用確認の重要性を理解
+・例外テスト作成
+・with pytest.raises() の意味を理解
+・成功時／失敗時の副作用確認の重要性を理解
 """
 #トランザクションの中心に Order を置く設計
-class OutOfStockError(Exception):
+
+"""
+2026-02-23
+内容：
+・Order中心のトランザクション設計を状態機械に進化させた
+・Enum（OrderStatus / OrderAction）で状態と操作を型安全に管理
+・状態遷移を if 文から辞書（ALLOWED_TRANSITIONS）へ移行
+・_transition() を導入し状態変更を一本化
+・副作用（支払い・在庫減少）と状態遷移の順序を整理
+・ドメイン例外の階層設計を検討（OrderError基底クラス）
+"""
+#状態遷移の高度化
+class OrderError(Exception):
     pass
 
-class InsufficientBalanceError(Exception):
+class OutOfStockError(OrderError):
     pass
 
-class AlreadyCanceledError(Exception):
+class InsufficientBalanceError(OrderError):
     pass
+
+class InvalidStateTransitionError(OrderError):
+    pass
+
+
 
 class Product:
     def __init__(self, price: int, stock: int):
@@ -308,6 +325,25 @@ class OrderStatus(Enum):
     CREATED = auto()
     PAID = auto()
     CANCELED = auto()
+#Enum型は「あらかじめ決まった選択肢の中から、常に1つだけ状態をとるもの」を管理するのに使う。
+#auto()は数字を割り当てる関数
+#Enumのメンバーは OrderStatus型 というオリジナルの型を持っている
+
+class OrderAction(Enum):
+    PAY = auto()
+    CANCEL = auto()
+
+ALLOWED_TRANSITIONS = {
+    OrderStatus.CREATED: {
+        OrderAction.PAY: OrderStatus.PAID,
+        OrderAction.CANCEL: OrderStatus.CANCELED,
+    },
+    OrderStatus.PAID: {
+        OrderAction.CANCEL: OrderStatus.CANCELED,
+    },
+    OrderStatus.CANCELED: {},
+}
+#次に起こり得る状態遷移を辞書で書いている（可読性が高い）
 
 from typing import Optional
 
@@ -319,45 +355,44 @@ class Order:
         self._receipt_sender = receipt_sender
         self._status = OrderStatus.CREATED
         self._paid_amount = 0
-
-    def _ensure_created(self):
-        if self._status != OrderStatus.CREATED:
-            raise ValueError("Order is not in CREATED state")
     
-    def _ensure_not_canceled(self):
-        if self._status == OrderStatus.CANCELED:
-            raise AlreadyCanceledError()
-    def _ensure_can_pay(self):
-        if self._status == OrderStatus.PAID:
-            raise ValueError("Order already paid")
-        if self._status == OrderStatus.CANCELED:
-            raise ValueError("Order already canceled")
+    @property
+    def status(self) -> OrderStatus:
+        return self._status
 
+    #状態遷移の関数
+    def _transition(self, action: OrderAction) -> None:
+        allowed = ALLOWED_TRANSITIONS[self._status]
+
+        if action not in allowed:
+            raise InvalidStateTransitionError(
+                f"Cannot {action.name} when status is {self._status.name}"
+        )
+
+        self._status = allowed[action]
 
     def pay(self):
-        self._ensure_created()
-        self._ensure_can_pay()
-
         price = self._product.price
         if self._coupon:
             price = self._coupon.apply(price)
 
+        # 副作用（ここで例外が出る可能性あり）
         self._user.pay(price)
         self._product.decrease_stock()
 
         self._paid_amount = price
-        self._status = OrderStatus.PAID
+
+        # 状態遷移
+        self._transition(OrderAction.PAY)
 
         self._receipt_sender.send("Payment completed")
 
     def cancel(self):
-        self._ensure_not_canceled()
-
         if self._status == OrderStatus.PAID:
             self._user.refund(self._paid_amount)
             self._product.return_product()
 
-        self._status = OrderStatus.CANCELED
+        self._transition(OrderAction.CANCEL)
 
     
 

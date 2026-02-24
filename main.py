@@ -232,6 +232,15 @@ pytest導入・実行確認
 ・ドメイン例外の階層設計を検討（OrderError基底クラス）
 """
 #状態遷移の高度化
+
+"""
+2026-02-24
+内容：
+pay() の原子性を改善
+チェック → 副作用 → 状態確定 の順序
+二重支払い・二重キャンセル防止
+テストを通して設計の整合性を確認
+"""
 class OrderError(Exception):
     pass
 
@@ -357,6 +366,14 @@ class Order:
         self._paid_amount = 0
     
     @property
+    def product(self):
+        return self._product
+
+    @property
+    def user(self):
+        return self._user
+
+    @property
     def status(self) -> OrderStatus:
         return self._status
 
@@ -375,22 +392,39 @@ class Order:
         price = self._product.price
         if self._coupon:
             price = self._coupon.apply(price)
+        
+        #状態チェック
+        if self._status != OrderStatus.CREATED:
+            raise InvalidStateTransitionError()
+
+        #在庫チェック
+        if self._product.stock <= 0:
+            raise OutOfStockError()
+        
+        #残高チェック
+        if self._user.balance < price:
+            raise InsufficientBalanceError()
+        #副作用の関数内にもチェックはあるが、こっちのチェックは支払いできるかどうか、関数内のチェックは変数として成立するかのチェック
 
         # 副作用（ここで例外が出る可能性あり）
         self._user.pay(price)
         self._product.decrease_stock()
-
         self._paid_amount = price
-
-        # 状態遷移
-        self._transition(OrderAction.PAY)
-
         self._receipt_sender.send("Payment completed")
 
+        #状態遷移
+        self._transition(OrderAction.PAY)
+
     def cancel(self):
+        #状態チェック
+        if self._status not in (OrderStatus.CREATED, OrderStatus.PAID):    #タプルは複数と比較するときに使う
+            raise InvalidStateTransitionError()
+        
+        #副作用
         if self._status == OrderStatus.PAID:
-            self._user.refund(self._paid_amount)
             self._product.return_product()
+            self._user.refund(self._paid_amount)
+        #副作用の原子性に気を付ける（複数の処理をまとめて、全部成功するか全部失敗するかのどちらかにすること）
 
         self._transition(OrderAction.CANCEL)
 

@@ -236,10 +236,24 @@ pytest導入・実行確認
 """
 2026-02-24
 内容：
-pay() の原子性を改善
-チェック → 副作用 → 状態確定 の順序
-二重支払い・二重キャンセル防止
-テストを通して設計の整合性を確認
+・pay() の原子性を改善
+・チェック → 副作用 → 状態確定 の順序
+・二重支払い・二重キャンセル防止
+・テストを通して設計の整合性を確認
+"""
+#原子性と状態遷移の制御による、不整合を許さない堅牢な注文管理システムの設計
+
+"""
+2026-02-25
+内容：
+・状態遷移テーブル（ALLOWED_TRANSITIONS）にロジックを集約
+・状態チェックを if 文からテーブル駆動へ移行
+・副作用を クリティカル / ノンクリティカル に分類
+・原子性の範囲を「ビジネス整合性」に限定する設計を理解
+・例外を握り潰さず、トランザクション境界で扱う考え方を整理
+・ドメイン層は「正しい振る舞い」を定義し、原子性保証はApplication/DB層の責務と理解
+・cancel処理を「返金・在庫復元・状態変更」の1事実として設計
+・レイヤードアーキテクチャ的責務分離を意識
 """
 class OrderError(Exception):
     pass
@@ -333,6 +347,7 @@ from enum import Enum, auto
 class OrderStatus(Enum):
     CREATED = auto()
     PAID = auto()
+    SHIPPED = auto()
     CANCELED = auto()
 #Enum型は「あらかじめ決まった選択肢の中から、常に1つだけ状態をとるもの」を管理するのに使う。
 #auto()は数字を割り当てる関数
@@ -341,6 +356,7 @@ class OrderStatus(Enum):
 class OrderAction(Enum):
     PAY = auto()
     CANCEL = auto()
+    SHIP = auto()
 
 ALLOWED_TRANSITIONS = {
     OrderStatus.CREATED: {
@@ -348,13 +364,17 @@ ALLOWED_TRANSITIONS = {
         OrderAction.CANCEL: OrderStatus.CANCELED,
     },
     OrderStatus.PAID: {
+        OrderAction.SHIP: OrderStatus.SHIPPED,
         OrderAction.CANCEL: OrderStatus.CANCELED,
     },
+    OrderStatus.SHIPPED: {},
     OrderStatus.CANCELED: {},
 }
 #次に起こり得る状態遷移を辞書で書いている（可読性が高い）
 
 from typing import Optional
+import logging
+logger = logging.getLogger(__name__)    #loggerを使うための操作
 
 class Order:
     def __init__(self, user: User, product: Product, receipt_sender: ReceiptSender, coupon: Optional[Coupon] = None):
@@ -394,9 +414,8 @@ class Order:
             price = self._coupon.apply(price)
         
         #状態チェック
-        if self._status != OrderStatus.CREATED:
+        if OrderAction.PAY not in ALLOWED_TRANSITIONS[self._status]:
             raise InvalidStateTransitionError()
-
         #在庫チェック
         if self._product.stock <= 0:
             raise OutOfStockError()
@@ -406,29 +425,37 @@ class Order:
             raise InsufficientBalanceError()
         #副作用の関数内にもチェックはあるが、こっちのチェックは支払いできるかどうか、関数内のチェックは変数として成立するかのチェック
 
-        # 副作用（ここで例外が出る可能性あり）
+        # 副作用
+        #クリティカル
         self._user.pay(price)
         self._product.decrease_stock()
         self._paid_amount = price
-        self._receipt_sender.send("Payment completed")
-
-        #状態遷移
+        #状態遷移            
         self._transition(OrderAction.PAY)
+        #ノンクリティカル
+        try:
+             self._receipt_sender.send("Payment completed")
+        except Exception as e:
+            logger.error("Failed to send receipt", exc_info = e)
+        #クリティカルの動作は重要度が高い、ノンクリティカルは後からでも変更できる
+        #どちらも含めたトランザクションにすると、メールの不具合でも支払いに影響する
 
     def cancel(self):
         #状態チェック
-        if self._status not in (OrderStatus.CREATED, OrderStatus.PAID):    #タプルは複数と比較するときに使う
+        if OrderAction.CANCEL not in ALLOWED_TRANSITIONS[self._status]:
             raise InvalidStateTransitionError()
         
-        #副作用
+        #クリティカル副作用
         if self._status == OrderStatus.PAID:
             self._product.return_product()
             self._user.refund(self._paid_amount)
+        #処理の順番は一番壊れたら困るものを最後、巻き戻しにくいものを最後、状態は事実のあととして考える
         #副作用の原子性に気を付ける（複数の処理をまとめて、全部成功するか全部失敗するかのどちらかにすること）
 
         self._transition(OrderAction.CANCEL)
-
     
+    def ship(self):
+        self._transition(OrderAction.SHIP)
 
 class CheckoutService:
     def __init__(self, receipt_sender: ReceiptSender):

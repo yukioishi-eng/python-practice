@@ -258,13 +258,24 @@ pytest導入・実行確認
 #状態遷移モデルと副作用の分離による堅牢な注文ドメイン設計
 
 """
-2026-03-09
+2026-03-08
 内容：
 ・ドメインイベントの設定
 ・DDD設計に合わせたプログラム設計
 """
-#DDD設計
-    #ドメイン層
+
+"""
+2026-03-09
+内容：
+・PayOrderUseCase でイベントを処理し、副作用（レシート送信）をドメインから分離
+・Order を Aggregate Root として設計し、User・Product などの整合性を管理
+・Order.pay() を通してのみ状態変更を行い、Aggregateの整合性を保証
+・ReceiptSender を インターフェース化して依存を抽象化
+・送信方法（Email / Slack など）を ポリモーフィズムで差し替え可能に設計
+・Domain → Application → Infrastructure の 依存方向を意識
+・id(self) は一時的識別子であり、本来はドメインIDを持つべきと理解
+"""
+#ドメイン層
 class OrderError(Exception):
     pass
 
@@ -279,13 +290,10 @@ class InvalidStateTransitionError(OrderError):
 
 class DomainEvent:
     pass
-#ドメインイベントは重要なビジネス上の出来事が起きたという事実の記録
 
 class OrderPaid(DomainEvent):    
-    def __init__(self, order_id: int):
+    def __init__(self, order_id: OrderId):
         self.order_id = order_id
-    #order_idを保存
-    # OrderからPayOrderUseCaseへの伝言メモ
 
 class Product:
     def __init__(self, price: int, stock: int):
@@ -360,11 +368,6 @@ class Coupon:
             raise ValueError("discount_amount is invalid")
 
 
-class ReceiptSender:
-    def send(self, message: str) -> None:
-        print(message)
-
-
 from enum import Enum, auto
 
 class OrderStatus(Enum):
@@ -395,14 +398,19 @@ from typing import Optional
 import logging
 logger = logging.getLogger(__name__)
 
+class OrderId:
+    def __init__(self, value: int):
+        self.value = value
+
 class Order:
-    def __init__(self, user: User, product: Product, coupon: Optional[Coupon] = None):
+    def __init__(self, order_id: int, user: User, product: Product, coupon: Optional[Coupon] = None):
+        self,_id = order_id
         self._user = user
         self._product = product
         self._coupon = coupon
         self._status = OrderStatus.CREATED
         self._paid_amount = 0
-        self._events = []    #起きた出来事を一時的に溜めておくリスト
+        self._events = []
         
     
     @property
@@ -422,7 +430,7 @@ class Order:
         return self._events
 
     def clear_events(self):
-        self._events.clear()    #clear()はリストや辞書の中身を全部削除するメソッド
+        self._events.clear()
 
     def _transition(self, action: OrderAction) -> None:
         allowed = ALLOWED_TRANSITIONS[self._status]
@@ -451,8 +459,7 @@ class Order:
         self._paid_amount = price
         self._transition(OrderAction.PAY)
 
-        self._events.append(OrderPaid(order_id=id(self)))
-        #id()はメモリ上のアドレス（識別子）を返す
+        self._events.append(OrderPaid(order_id = self._id))
         
 
     def cancel(self):
@@ -488,7 +495,27 @@ class PayOrderUseCase:
 
             if isinstance(event, OrderPaid):
                 self._receipt_sender.send("Payment completed")
-            #eventsにOrderPaid（支払い済み）があれば請求書を発行する
 
         order.clear_events()
-        #支払いが完了したので、eventsの中身を消去
+
+from abc import ABC, abstractmethod
+
+class ReceiptSender(ABC):
+    @abstractmethod
+    def send(self, message: str) -> None:
+        pass
+
+class EmailReceiptSender(ReceiptSender):
+
+    def send(self, message: str):
+        print("send email:", message)
+
+class SlackReceiptSender(ReceiptSender):
+
+    def send(self, message: str):
+        print("send Slack:", message)
+
+class LINEReceiptSender(ReceiptSender):
+
+    def send(self, message: str):
+        print("send LINE:", message)

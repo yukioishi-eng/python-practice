@@ -275,6 +275,19 @@ pytest導入・実行確認
 ・Domain → Application → Infrastructure の 依存方向を意識
 ・id(self) は一時的識別子であり、本来はドメインIDを持つべきと理解
 """
+
+"""
+2026-03-13
+内容：
+Repositoryパターン導入
+OrderRepository を抽象クラスとして定義
+InMemoryOrderRepository を実装
+execute() でorder_repo.get()、order_repo.save()の実装
+EmailReceiptSender、SlackReceiptSender、LINEReceiptSender
+transition を最後にする理由
+Aggregateの整合性を守る
+1 Transaction = 1 Aggregate（設計上の重要ルール）
+"""
 #ドメイン層
 class OrderError(Exception):
     pass
@@ -292,8 +305,20 @@ class DomainEvent:
     pass
 
 class OrderPaid(DomainEvent):    
-    def __init__(self, order_id: OrderId):
+    def __init__(self, order_id):
         self.order_id = order_id
+
+from abc import ABC, abstractmethod
+
+class OrderRepository(ABC):
+
+    @abstractmethod
+    def get(self, order_id: OrderId) -> Order:
+        pass
+
+    @abstractmethod
+    def save(self, order: Order) -> None:
+        pass
 
 class Product:
     def __init__(self, price: int, stock: int):
@@ -400,11 +425,30 @@ logger = logging.getLogger(__name__)
 
 class OrderId:
     def __init__(self, value: int):
-        self.value = value
+        self._validate_value(value)
+        self._value = value
+
+    @property
+    def value(self) -> int:
+        return self._value
+    
+    def __eq__(self, other):
+        return isinstance(other, OrderId) and self.value == other.value
+    #__eq__は == で比較したときに正しい結果を出力するためのメソッド
+    #return A and BはAとBが両方当てはまるときTrueを出力する
+        
+    
+    def _validate_value(self, value) -> None:
+        if not isinstance(value, int) or value < 1:
+            raise ValueError("OrderId is invalid")
 
 class Order:
-    def __init__(self, order_id: int, user: User, product: Product, coupon: Optional[Coupon] = None):
-        self,_id = order_id
+    def __init__(self, order_id: OrderId, 
+    user: User, 
+    product: Product, 
+    coupon: Optional[Coupon] = None
+    ):
+        self._id = order_id
         self._user = user
         self._product = product
         self._coupon = coupon
@@ -427,7 +471,7 @@ class Order:
     
     @property
     def events(self):
-        return self._events
+        return list(self._events)
 
     def clear_events(self):
         self._events.clear()
@@ -447,8 +491,6 @@ class Order:
         if self._coupon:
             price = self._coupon.apply(price)
         
-        if OrderAction.PAY not in ALLOWED_TRANSITIONS[self._status]:
-            raise InvalidStateTransitionError()
         if self._product.stock <= 0:
             raise OutOfStockError()
         if self._user.balance < price:
@@ -477,33 +519,45 @@ class Order:
 
 
     #アプリケーション層
+class ReceiptSender(ABC):
+    @abstractmethod
+    def send(self, message: str) -> None:
+        pass
+
 class CheckoutService:
 
-    def create_order(self, user, product, coupon=None) -> Order:
-        return Order(user, product, coupon)
+    def __init__(self, order_repo: OrderRepository):
+        self._order_repo = order_repo
+
+    def create_order(self, order_id: OrderId, user, product, coupon: Optional[Coupon] = None) -> Order:
+
+        order = Order(order_id, user, product, coupon)
+
+        self._order_repo.save(order)
+
+        return order
 
 class PayOrderUseCase:
 
-    def __init__(self, receipt_sender: ReceiptSender):
+    def __init__(self, order_repo: OrderRepository, receipt_sender: ReceiptSender):
+        self._order_repo = order_repo
         self._receipt_sender = receipt_sender
 
-    def execute(self, order: Order):
+    def execute(self, order_id: OrderId):
+
+        order = self._order_repo.get(order_id)
 
         order.pay()
 
-        for event in order.events:
+        self._order_repo.save(order)
 
+        for event in order.events:
             if isinstance(event, OrderPaid):
                 self._receipt_sender.send("Payment completed")
 
         order.clear_events()
 
-from abc import ABC, abstractmethod
-
-class ReceiptSender(ABC):
-    @abstractmethod
-    def send(self, message: str) -> None:
-        pass
+#インフラ層
 
 class EmailReceiptSender(ReceiptSender):
 
@@ -519,3 +573,17 @@ class LINEReceiptSender(ReceiptSender):
 
     def send(self, message: str):
         print("send LINE:", message)
+
+class InMemoryOrderRepository(OrderRepository):
+
+    def __init__(self):
+        self._orders = {}
+
+    def get(self, order_id: OrderId) -> Order:
+        return self._orders[order_id.value]
+
+    def save(self, order: Order) -> None:
+        self._orders[order._id.value] = order
+    #リポジトリはDBへの保存・取得を隠蔽する窓口
+    #今回は代わりに辞書を用いている
+

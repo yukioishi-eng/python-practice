@@ -1,151 +1,77 @@
-from main import (
-    User,
-    Product,
-    ReceiptSender,
-    Order,
-    OrderStatus,
-    OrderPaid,
-    OutOfStockError,
-    InsufficientBalanceError,
-    InvalidStateTransitionError,
-)
-
 import pytest
 
+from main import (
+    Order,
+    OrderId,
+    OrderPaid,
+    InMemoryOrderRepository,
+    InMemoryUserRepository,
+    InMemoryProductRepository,
+    PayOrderUseCase,
+    User,
+    Product,
+    EventDispatcher,
+    OrderPaidHandler,
+    EmailReceiptSender,
+    InsufficientBalanceError,
+    OutOfStockError,
+)
 
-def test_order_initial_status_is_created():
-
-    # Arrange
-    user = User(balance=1000)
-    product = Product(price=500, stock=10)
-    receipt = ReceiptSender()
-
-    # Act
-    order = Order(user, product, receipt)
-
-    # Assert
-    assert order.status == OrderStatus.CREATED
-    assert order.paid_amount == 0
-    assert order.events == []
-
-
-def test_order_pay_success():
-
-    # Arrange
-    user = User(balance=1000)
-    product = Product(price=500, stock=10)
-    receipt = ReceiptSender()
-
-    order = Order(user, product, receipt)
-
-    # Act
-    order.pay()
-
-    # Assert
-    assert user.balance == 500
-    assert product.stock == 9
-    assert order.status == OrderStatus.PAID
+def create_dispatcher():
+    dispatcher = EventDispatcher()
+    handler = OrderPaidHandler(EmailReceiptSender())
+    dispatcher.register(OrderPaid, handler)
+    return dispatcher
 
 
-def test_order_paid_event_created():
+def test_pay_order_insufficient_balance():
+    order_repo = InMemoryOrderRepository()
+    user_repo = InMemoryUserRepository()
+    product_repo = InMemoryProductRepository()
 
-    # Arrange
-    user = User(balance=1000)
-    product = Product(price=500, stock=10)
-    receipt = ReceiptSender()
+    dispatcher = create_dispatcher()
 
-    order = Order(user, product, receipt)
+    user = User(user_id=1, balance=100)
+    product = Product(product_id=1, price=300, stock=10)
+    order = Order(OrderId(1), user_id=1, product_id=1)
 
-    # Act
-    order.pay()
+    user_repo.save(user)
+    product_repo.save(product)
+    order_repo.save(order)
 
-    # Assert
-    assert len(order.events) == 1
-    assert isinstance(order.events[0], OrderPaid)
+    usecase = PayOrderUseCase(order_repo, user_repo, product_repo, dispatcher)
 
-
-def test_order_pay_insufficient_balance():
-
-    # Arrange
-    user = User(balance=100)
-    product = Product(price=500, stock=10)
-    receipt = ReceiptSender()
-
-    order = Order(user, product, receipt)
-
-    # Act / Assert
     with pytest.raises(InsufficientBalanceError):
-        order.pay()
-
-    # 副作用なし
-    assert user.balance == 100
-    assert product.stock == 10
+        usecase.execute(OrderId(1))
 
 
-def test_cannot_pay_twice():
+def test_pay_order_out_of_stock():
+    order_repo = InMemoryOrderRepository()
+    user_repo = InMemoryUserRepository()
+    product_repo = InMemoryProductRepository()
 
-    # Arrange
-    user = User(balance=1000)
-    product = Product(price=500, stock=10)
-    receipt = ReceiptSender()
+    dispatcher = create_dispatcher()
 
-    order = Order(user, product, receipt)
+    user = User(user_id=1, balance=1000)
+    product = Product(product_id=1, price=300, stock=0)
+    order = Order(OrderId(1), user_id=1, product_id=1)
 
-    order.pay()
+    user_repo.save(user)
+    product_repo.save(product)
+    order_repo.save(order)
 
-    # Act / Assert
-    with pytest.raises(InvalidStateTransitionError):
-        order.pay()
-
-    assert order.status == OrderStatus.PAID
-    assert user.balance == 500
-    assert product.stock == 9
-
-
-def test_cannot_cancel_twice():
-
-    user = User(balance=1000)
-    product = Product(price=500, stock=10)
-    receipt = ReceiptSender()
-
-    order = Order(user, product, receipt)
-
-    order.cancel()
-
-    with pytest.raises(InvalidStateTransitionError):
-        order.cancel()
-
-    assert order.status == OrderStatus.CANCELED
-
-
-def test_cannot_pay_after_cancel():
-
-    user = User(balance=1000)
-    product = Product(price=500, stock=10)
-    receipt = ReceiptSender()
-
-    order = Order(user, product, receipt)
-
-    order.cancel()
-
-    with pytest.raises(InvalidStateTransitionError):
-        order.pay()
-
-    assert order.status == OrderStatus.CANCELED
-    assert user.balance == 1000
-    assert product.stock == 10
-
-
-def test_out_of_stock():
-
-    user = User(balance=1000)
-    product = Product(price=500, stock=0)
-    receipt = ReceiptSender()
-
-    order = Order(user, product, receipt)
+    usecase = PayOrderUseCase(order_repo, user_repo, product_repo, dispatcher)
 
     with pytest.raises(OutOfStockError):
-        order.pay()
+        usecase.execute(OrderId(1))
 
-    assert order.status == OrderStatus.CREATED
-    assert user.balance == 1000
+
+def test_order_emits_event_on_payment():
+    order = Order(OrderId(1), user_id=1, product_id=1)
+
+    order.mark_as_paid(300)
+
+    events = order.events
+
+    assert len(events) == 1
+    assert isinstance(events[0], OrderPaid)

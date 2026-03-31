@@ -286,6 +286,7 @@ class PayOrderUseCase:
 
         order.clear_events()
 
+#インフラ層
 class EmailReceiptSender(ReceiptSender):
 
     def send(self, message: str):

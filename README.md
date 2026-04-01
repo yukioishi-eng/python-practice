@@ -69,12 +69,12 @@ python-practice/
 │   ├── passed_number.py
 │   ├── count_number.py
 │   ├── calc_passed_avg.py
-│   └── ...
-├── order_system/            # 注文システム（メインプロジェクト）
-│   ├── order_system_v3.py
-│   ├── order_system_v4.py
-│   ├── order_system_v5.py
-│   └── test_order_system_v5.py
+│   ├── ...
+    └── order_system/            # 注文システム（メインプロジェクト）
+│       ├── order_system_v3.py
+│       ├── order_system_v4.py
+│       ├── order_system_v5.py
+│       └── test_order_system_v5.py
 └── main.py          # 学習ログ（日付・内容・ファイル対応）
 ```
 

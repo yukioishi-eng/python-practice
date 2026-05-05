@@ -279,45 +279,76 @@ pytest導入・実行確認
 """
 2026-03-13
 内容：
-Repositoryパターン導入
-OrderRepository を抽象クラスとして定義
-InMemoryOrderRepository を実装
-execute() でorder_repo.get()、order_repo.save()の実装
-EmailReceiptSender、SlackReceiptSender、LINEReceiptSender
-transition を最後にする理由
-Aggregateの整合性を守る
-1 Transaction = 1 Aggregate（設計上の重要ルール）
+・Repositoryパターン導入
+・OrderRepository を抽象クラスとして定義
+・InMemoryOrderRepository を実装
+・execute() でorder_repo.get()、order_repo.save()の実装
+・EmailReceiptSender、SlackReceiptSender、LINEReceiptSender
+・transition を最後にする理由
+・Aggregateの整合性を守る
+・1 Transaction = 1 Aggregate（設計上の重要ルール）
 """
 
 """
 2026-03-24
 内容：
-イベント処理の完成
-Repositoryの不備修正
-永続化漏れ修正（バグ修正）
-ドメインイベント強化
-EntityにID追加
-Orderの責務整理
-バグ修正（動作面）
+・イベント処理の完成
+・Repositoryの不備修正
+・永続化漏れ修正（バグ修正）
+・ドメインイベント強化
+・EntityにID追加
+・Orderの責務整理
+・バグ修正（動作面）
 """
 
 """
 2026-04-02
 内容：
-ndarrayはリストと違い、要素の加工や行列計算が簡単にできる
-ndimで次元数、shapeで各次元のサイズを確認できる
-zeros/onesで0・1埋め、random.randでランダム値、emptyでメモリ上の値の配列を作成できる
-shapeが同じ配列同士は要素ごとに計算できる
-行か列のどちらかのサイズが一致していれば自動的に引き伸ばして計算できる
+・ndarrayはリストと違い、要素の加工や行列計算が簡単にできる
+・ndimで次元数、shapeで各次元のサイズを確認できる
+・zeros/onesで0・1埋め、random.randでランダム値、emptyでメモリ上の値の配列を作成できる
+・shapeが同じ配列同士は要素ごとに計算できる
+・行か列のどちらかのサイズが一致していれば自動的に引き伸ばして計算できる
 """
 
 """
 2026-04-05
 内容：
-行列演算
-配列の変形
-要素へのアクセス
-配列の結合
-統計・集計関数
-数学関数（スカラー値に使用）
+・行列演算
+・配列の変形
+・要素へのアクセス
+・配列の結合
+・統計・集計関数
+・数学関数（スカラー値に使用）
 """
+
+"""
+2026-05-05
+内容：
+2次元データ → DataFrame、1次元データ → Series（カラムは持たない）
+DataFrameの構成要素
+pd.DataFrame()による表データを作成
+indexを任意に設定
+"""
+#pandasの基礎
+#2次元の表形式データをDataFrame、DataFrameの1列分に相当する1次元のデータを Seriesという（Seriesにはカラムはない）
+#列のラベルをColumn（カラム）という
+#行を表す数字をインデックスという
+
+import pandas as pd
+pd.DataFrame({
+    "名前": ["佐藤", "斎藤", "鈴木"],
+})
+
+#こうすることで、名前というカラム名の列が作成できた
+#名前
+#佐藤
+#斎藤
+#鈴木
+
+pd.DataFrame({
+    "名前": ["佐藤", "斎藤", "鈴木"],
+    "年齢": ["21", "30", "18"]
+}, index = ["i-1", "i-2", "i-3"])
+#縦に並べることで、複数の列を作成できる
+#インデックスを指定することができ、通常0から始まるインデックスを1から指定し、直観的にわかりやすくできる

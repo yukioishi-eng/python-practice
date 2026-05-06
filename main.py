@@ -352,3 +352,13 @@ pd.DataFrame({
 }, index = ["i-1", "i-2", "i-3"])
 #縦に並べることで、複数の列を作成できる
 #インデックスを指定することができ、通常0から始まるインデックスを1から指定し、直観的にわかりやすくできる
+
+#Excelファイルの読み込み
+
+#こうすることで、dfにExcelファイルのDataFrame化したものが入る
+#列のカラム名を指定することで、その列をインデックスとみなせる ex.ユーザ名
+#例
+df = pd.read_excel(
+    "C:/Users/31rek/python-practice/sample.xlsx", index_col="ユーザID"
+)
+print(df)

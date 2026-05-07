@@ -338,6 +338,13 @@ indexを任意に設定
 ・列のインデックス指定
 """
 
+"""
+2026-05-07
+内容：
+csvファイルの読み込み
+行や列の抽出(loc, iloc)
+"""
+
 #pandasの基礎
 #2次元の表形式データをDataFrame、DataFrameの1列分に相当する1次元のデータを Seriesという（Seriesにはカラムはない）
 #列のラベルをColumn（カラム）という
@@ -362,7 +369,9 @@ pd.DataFrame({
 #インデックスを指定することができ、通常0から始まるインデックスを1から指定し、直観的にわかりやすくできる
 
 #Excelファイルの読み込み
-
+df = pd.read_excel(
+    "ファイルパス", index_col="カラム名"
+)
 #こうすることで、dfにExcelファイルのDataFrame化したものが入る
 #列のカラム名を指定することで、その列をインデックスとみなせる ex.ユーザ名
 #例
@@ -370,3 +379,22 @@ df = pd.read_excel(
     "C:/Users/31rek/python-practice/sample.xlsx", index_col="ユーザID"
 )
 print(df)
+
+#csvファイルの読み込み
+df = pd.read_csv(
+    "ファイルパス", index_col="カラム名"
+)
+#ほかにもjson、xml、pickle、htmlデータも読み込める
+
+#特定の行や列を抽出
+df_new = df.loc[[インデックスのリスト], [カラム名のリスト]]
+#これで指定したインデックスとカラム名に合う列や行が抽出できる
+#全ての行または列を指定するときは：、範囲指定をするときは最初：最後とすれば指定できる
+df.iloc[[行番号のリスト], [列番号のリスト]]
+#ilocだと先頭を0とした行番号と列番号によって指定する
+#例：
+df = pd.read_excel(
+    "C:/Users/31rek/python-practice/sample.xlsx", index_col="ユーザID"
+)
+df_new = df.loc[["佐藤", "斎藤"], :]
+print(df_new)

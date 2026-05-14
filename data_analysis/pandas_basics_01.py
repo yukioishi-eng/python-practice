@@ -24,7 +24,7 @@ pd.DataFrame({
 #Excelファイルの読み込み
 
 df = pd.read_excel(
-    "C:/Users/31rek/python-practice/sample.xlsx", index_col = "ユーザID"    #"ファイルのパス", index_col = "インデックスに指定する列のカラム"
+    "C:/Users/31rek/python-practice/data_analysis/sample.xlsx", index_col = "ユーザID"    #"ファイルのパス", index_col = "インデックスに指定する列のカラム"
 )
 print(df)               #年齢   住所 血液型     
                 #ユーザID                      
@@ -39,7 +39,7 @@ print(df)               #年齢   住所 血液型
 
 #特定の行や列を抽出
 df = pd.read_excel(
-    "C:/Users/31rek/python-practice/sample.xlsx", index_col="ユーザID"
+    "C:/Users/31rek/python-practice/data_analysis/sample.xlsx", index_col="ユーザID"
 )
 df_new = df.loc[["佐藤", "斎藤"], :]
 
@@ -62,7 +62,7 @@ print(df_oroginal)      #ユーザID
 #ilocだと先頭を0とした行番号と列番号によって指定する
 
 #条件抽出（ブールインデックス）
-df = pd.read_excel("C:/Users/31rek/python-practice/sample.xlsx")
+df = pd.read_excel("C:/Users/31rek/python-practice/data_analysis/sample.xlsx")
 df_filtered = df[df["年齢"] >= 25]    #df[ブールインデックス]
 
 print(df_filtered)  #  ユーザID  年齢   住所 血液型
@@ -73,13 +73,13 @@ print(df_filtered)  #  ユーザID  年齢   住所 血液型
 #複数条件を設定するときはdf[(条件1) & (条件2)]のように括弧でくくる
 
 #統計量を調べる
-df = pd.read_excel("C:/Users/31rek/python-practice/sample.xlsx")
+df = pd.read_excel("C:/Users/31rek/python-practice/data_analysis/sample.xlsx")
 print(df["年齢"].max())    #45
 
 #他にも平均値や最小値など様々な値の取得ができる
 
 #列単位で演算、追加
-df = pd.read_csv("C:/Users/31rek/python-practice/sample.csv")
+df = pd.read_csv("C:/Users/31rek/python-practice/data_analysis/sample.csv")
 val = df["ポイント"] * df["レベル"]
 
 print(val)      #0    13600

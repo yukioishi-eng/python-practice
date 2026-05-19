@@ -367,8 +367,17 @@ df.index を使うことでインデックスを変更できる
 range(1, 10) を使うことで、インデックスを 1〜9 に設定できる
 df.columns を使うことで列名を変更できる
 列名の数と列数は一致している必要がある
+"""
 
 """
+2026-05-19
+内容：
+・inplace = Trueによるdf自身のインデックス変更
+・インデックスの振りなおし
+・inplace = Trueによるdf自身のインデックスの振りなおし
+・drop = Trueを使い、元々インデックスだった列の追加のキャンセル
+"""
+
 #pandasの基礎の続き
 #groupbyによる集計
 import pandas as pd
@@ -400,7 +409,9 @@ df.index = range(1, 10)
 #カラム名の変更
 df.columns = ["date", "name", "sales"]
 
+#指定したカラムのインデックス化
 df_new = df.set_index("name")
+
 print(df_new)    #          date   sales
                  #name                  
                  #佐藤    2021/8/1  203000
@@ -415,3 +426,23 @@ print(df_new)    #          date   sales
 
 #set_indexは指定した列をインデックスとしたデータフレームを作成する
 #なので、元のデータフレームは変更されない
+#しかし、df.set_index("カラム名", inplace = True)とすると、df自体のインデックスを変更する
+
+#インデックスを0から振りなおす
+df_new = df_new.reset_index()
+
+print(df_new)    #  name      date   sales
+                 #0   佐藤  2021/8/1  203000
+                 #1   斎藤  2021/8/2  215000
+                 #2   田中  2021/8/3  190000
+                 #3   佐藤  2021/8/4  186000
+                 #4   田中  2021/8/5  239000
+                 #5   佐藤  2021/8/6  210000
+                 #6   斎藤  2021/8/7  252000
+                 #7   田中  2021/8/8  242000
+                 #8   佐藤  2021/8/9  199000
+
+#これもdf.reset_index(inplace = True)とすると、dfが変更される
+#しかし、元々インデックスだった列はインデックス変更後に新しい列として追加されるので、追加したくないときはdf.reset_index(inplace = True, drop = True)とすればよい
+
+

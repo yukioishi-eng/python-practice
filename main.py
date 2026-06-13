@@ -403,6 +403,18 @@ df.columns を使うことで列名を変更できる
 ・lambdaは「指定した文字(引数)を受け取り、:の後にその処理を書く」という構文
 ・"成人" if x >= 20 else "未成年"は三項演算子(条件式)で、「値A if 条件 else 値B」の形で条件分岐を1行で書ける
 """
+
+"""
+2026-06-13
+内容：
+・組み込み関数のmap()はリストの各要素を一つずつ取り出し、lambdaで指定した処理をした結果をまとめて返す
+・Series.map()に辞書を渡すと、キーに対応する値で新しい列を作成できる。(対応するキーがない場合はNaN)
+・Series.map()には別のSeriesを渡すこともでき、その場合はインデックスを使って値を対応させる(対応しない場合はNaN)
+・matplotlib.pyplotを使うと、DataFrameをグラフとして可視化できる
+・df.plot()のデフォルトは折れ線グラフ
+・kind引数を指定すると、グラフの種類(例: kind="bar"で棒グラフ)を変更できる
+・japanize_matplotlibをインポートすることで、グラフ内の日本語表示に対応できる
+"""
 #pandasの基礎の続き
 #groupbyによる集計
 import pandas as pd
@@ -589,4 +601,58 @@ print(df_1)     #   id  年齢   区分
 #指定した文字を引数とし、:後に関数の処理が入る
 #"成人" if x >= 20 else "未成年"は三項演算子とも言い、値A if 条件 else 値Bで条件分岐が書ける
 
-#この後はmap関数についての演習を入れること
+#組み込み関数のmap()
+numbers = [1, 2, 3]
+result = map(lambda x: x * 2, numbers)
+print(list(result))    # [2, 4, 6]
+
+#numbersの要素を一つ物取り出し、lambdaが2倍にして返す
+
+#他のSeries.map()の使い方
+df = pd.DataFrame({
+    "手番号": [1, 2, 3, 4]
+})
+df["手"] = df["手番号"].map({1: "グー", 2: "チョキ", 3: "パー"})
+
+print(df)    #   手番号    手
+             #0    1   グー
+             #1    2  チョキ
+             #2    3   パー
+             #3    4  NaN
+
+#mapの引数に辞書を入れることでキーに対応した値で列を作成する
+#どれとも合わない場合はNaNになる
+
+df = pd.DataFrame({
+    "手番号": [1, 2, 3, 4]
+})
+mapping = pd.Series(["グー", "チョキ", "パー"], index = [1, 2, 3])
+df["手"] = df["手番号"].map(mapping)
+
+print(df)    #   手番号    手
+             #0    1   グー
+             #1    2  チョキ
+             #2    3   パー
+             #3    4  NaN
+
+#他のSeriesを渡すことで、インデックスで対応することもできる
+
+#グラフ描画
+import matplotlib.pyplot as plt
+import japanize_matplotlib
+df = pd.DataFrame({
+    "名前": ["佐藤", "斎藤", "鈴木", "田中"],
+    "年齢": [21, 30, 18, 26],
+    "購入額": [9000, 8200, 1200, 5000]
+})
+
+df.plot(x = "名前", y = "購入額")
+plt.show()
+
+#matplotlibを用いると、DataFrameをグラフ化できる
+#デフォルトは折れ線グラフ
+
+df.plot(x = "名前", y = "購入額", kind = "bar")
+plt.show()
+
+#kindで指定すると、グラフ形式を変えることができる

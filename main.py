@@ -415,3 +415,14 @@ df.columns を使うことで列名を変更できる
 ・kind引数を指定すると、グラフの種類(例: kind="bar"で棒グラフ)を変更できる
 ・japanize_matplotlibをインポートすることで、グラフ内の日本語表示に対応できる
 """
+
+"""
+2026-06-19
+内容:
+・用語理解
+"""
+#matplotlibの基礎
+#用語理解
+#グラフを含む表示される画面をFigure、グラフをAxes、x軸とY軸をX axis、Y axis
+#X軸とY軸のラベルをX axis label、Y axis label、目盛りをX axis ticks、Y axis ticks、凡例をlegend、罫線をgrid
+

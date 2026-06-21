@@ -426,3 +426,13 @@ df.columns を使うことで列名を変更できる
 #グラフを含む表示される画面をFigure、グラフをAxes、x軸とY軸をX axis、Y axis
 #X軸とY軸のラベルをX axis label、Y axis label、目盛りをX axis ticks、Y axis ticks、凡例をlegend、罫線をgrid
 
+import matplotlib.pyplot as plt
+import japanize_matplotlib
+fig, ax = plt.subplots()
+#Figureと複数のAxesを一度に作成する関数
+#主な引数として、行数・列数を設定するnrows、図全体のサイズを設定するncolsfigsize=(幅, 高さ)、軸を共有するか(True/False)設定するsharex, sharey、レイアウト自動調整するtight_layout
+
+ax.plot(["月", "火", "水", "木", "金", "土", "日"], [19, 22, 17, 25, 21, 27, 24])
+#第1引数にxの値、第2引数にyの値をリストで指定
+
+plt.show()    #表示

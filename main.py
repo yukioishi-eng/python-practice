@@ -421,6 +421,24 @@ df.columns を使うことで列名を変更できる
 内容:
 ・用語理解
 """
+
+"""
+2026-06-21
+内容：
+・plt.subplots() を用いて、Figure（グラフ全体）とAxes（描画領域）を作成
+・FigureとAxesを分離して扱うことで、グラフの構造を理解した。
+・ax.plot() を使用して折れ線グラフを作成
+・x軸とy軸のデータをリスト形式で指定
+・plt.show() によるグラフの表示
+"""
+
+"""
+2026-06-23
+内容：
+・ラベルの指定
+・フォントサイズの変更
+"""
+
 #matplotlibの基礎
 #用語理解
 #グラフを含む表示される画面をFigure、グラフをAxes、x軸とY軸をX axis、Y axis
@@ -428,11 +446,21 @@ df.columns を使うことで列名を変更できる
 
 import matplotlib.pyplot as plt
 import japanize_matplotlib
+
+plt.rcParams["font.size"] = 30
+#rcParamsはMatplotlibのデフォルト設定を変更する関数
+#よって、グラフを作成するより前に実行する必要がある
+#これはフォントサイズの変更
+
 fig, ax = plt.subplots()
 #Figureと複数のAxesを一度に作成する関数
 #主な引数として、行数・列数を設定するnrows、図全体のサイズを設定するncolsfigsize=(幅, 高さ)、軸を共有するか(True/False)設定するsharex, sharey、レイアウト自動調整するtight_layout
 
 ax.plot(["月", "火", "水", "木", "金", "土", "日"], [19, 22, 17, 25, 21, 27, 24])
 #第1引数にxの値、第2引数にyの値をリストで指定
+
+ax.set_xlabel("曜日")
+ax.set_ylabel("気温")
+#ラベルの指定
 
 plt.show()    #表示

@@ -450,6 +450,13 @@ df.columns を使うことで列名を変更できる
 ・Y軸の目盛りの変更(set_yticks)
 """
 
+"""
+2026-06-29
+内容：
+・棒グラフの作成(ax.bar())
+・グラフの色の変更(color = "m")
+"""
+
 #matplotlibの基礎
 #用語理解
 #グラフを含む表示される画面をFigure、グラフをAxes、x軸とY軸をX axis、Y axis
@@ -512,6 +519,25 @@ ax.plot(["月", "火", "水", "木", "金", "土", "日"], [10, 13, 12, 10, 13, 
 ax.set_xlabel("曜日")
 ax.set_ylabel("気温", rotation="horizontal")
 ax.set_yticks([0, 5, 10, 15, 20, 25])    #Y軸の目盛りの変更
+ax.set_title("東京10月1週目")
+ax.grid()
+ax.legend()
+
+plt.show()
+
+# --- 4つ目のグラフ：棒グラフ ---
+plt.rcParams["font.size"] = 14
+
+fig, ax = plt.subplots()
+
+ax.bar(["月", "火", "水", "木", "金", "土", "日"], [19, 22, 17, 25, 21, 27, 24], label="最高気温")
+ax.plot(["月", "火", "水", "木", "金", "土", "日"], [10, 13, 12, 10, 13, 11, 13], label="最低気温", marker = "o", color = "m")
+#ax.bar()で棒グラフを作成
+#color = "m"で棒グラフの色をマゼンタに変更
+
+ax.set_xlabel("曜日")
+ax.set_ylabel("気温", rotation="horizontal")
+ax.set_yticks([0, 5, 10, 15, 20, 25])
 ax.set_title("東京10月1週目")
 ax.grid()
 ax.legend()

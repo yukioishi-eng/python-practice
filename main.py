@@ -457,6 +457,11 @@ df.columns を使うことで列名を変更できる
 ・グラフの色の変更(color = "m")
 """
 
+"""
+2026-07-01
+内容：
+・散布図の作成(ax.scatter())
+"""
 #matplotlibの基礎
 #用語理解
 #グラフを含む表示される画面をFigure、グラフをAxes、x軸とY軸をX axis、Y axis
@@ -542,4 +547,16 @@ ax.set_title("東京10月1週目")
 ax.grid()
 ax.legend()
 
+plt.show()
+
+# --- 5つ目のグラフ：散布図 ---
+fig, ax = plt.subplots()
+ax.scatter([120, 122, 122, 123, 125, 125, 126, 127, 128, 129, 129, 130],
+           [21, 23, 22, 26, 21, 25, 28, 27, 28, 25, 31, 32])
+#scatter()で散布図を作成
+
+ax.set_xlabel('身長')
+ax.set_ylabel('体重', rotation='horizontal')
+ax.set_title('2年1組')
+ax.grid()
 plt.show()

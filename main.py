@@ -469,6 +469,12 @@ df.columns を使うことで列名を変更できる
 ・ヒストグラムの作成(ax.hist())
 ・ヒストグラムの棒の数を指定(bins = 5)
 """
+
+"""
+2026-07-07
+内容：
+・ファイルへの保存
+"""
 import matplotlib.pyplot as plt
 import japanize_matplotlib
 
@@ -496,7 +502,7 @@ ax.set_title("2年1組")
 ax.grid()
 plt.show()
 
-# --- 7つ目のグラフ：複数のグラフ ---
+# --- 7つ目のグラフ：複数のグラフ、ファイル保存 ---
 fig, ax = plt.subplots(2, 2, figsize=(15, 10))
 #引数に(2, 2)を指定することで、2行2列のグラフを作成
 #figsize=(15, 10)でグラフ全体のfigのサイズを指定
@@ -511,4 +517,10 @@ ax[1, 0].scatter([120, 122, 122, 123, 125, 125, 126, 127, 128, 129, 129, 130],
 ax[1, 0].set_title("ax[1, 0]のグラフ")
 ax[1, 1].hist([21, 23, 22, 26, 21, 25, 28, 27, 28, 25, 31, 32], bins=5)
 ax[1, 1].set_title("ax[1, 1]のグラフ")
+plt.savefig("sample.png")
+#plt.savefig()でグラフを画像として保存できる
+#plt.show()でグラフを表示する前に保存する
+
 plt.show()
+
+

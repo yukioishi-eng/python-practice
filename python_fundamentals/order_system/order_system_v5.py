@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-
+#継承を用いている
 #例外
 class OrderError(Exception):
     pass
@@ -38,10 +38,12 @@ class OrderId:
     def value(self):
         return self._value
 
+#__eq__()はインスタンスが==の引数として使用されたときに必ず呼ばれる関数（インスタンス以外のオブジェクトとの比較時は通らない）
     def __eq__(self, other):
         return isinstance(other, OrderId) and self.value == other.value
 
-
+#pythonのクラス関数は通常仮想関数
+#ABCを継承し、 @abstractmethodを使うことで、基底クラスをインスタンス化させないようにできる（インスタンス化すると、TypeErrorが発生する）
 #Repository interface
 class OrderRepository(ABC):
     @abstractmethod
@@ -141,6 +143,7 @@ class OrderAction(Enum):
     CANCEL = auto()
     SHIP = auto()
 
+#ALLOWED_TRANSITIONSはキーの状態から、値の状態に遷移できるアクションを定義している
 ALLOWED_TRANSITIONS = {
     OrderStatus.CREATED: {
         OrderAction.PAY: OrderStatus.PAID,
@@ -189,6 +192,7 @@ class Order:
             return self._coupon.apply(base_price)
         return base_price
 
+    #状態の遷移
     def _transition(self, action):
         if action not in ALLOWED_TRANSITIONS[self._status]:
             raise InvalidStateTransitionError()
@@ -245,14 +249,17 @@ class PayOrderUseCase:
 
 
 # インフラ層
-
+#
 class EventDispatcher:
     def __init__(self):
         self._handlers = {}
 
+    #外からイベントタイプとハンドラーを登録し、イベントが起こったときの連絡先を保持するメソッド
+    #setdefaultは第一引数に指定したキーがすでに存在している場合は、第二引数にどんな値を指定しても辞書は元のまま変更されない配列追加メソッド
     def register(self, event_type, handler):
         self._handlers.setdefault(event_type, []).append(handler)
 
+    #eventsの中のイベントと_handlersの中のイベントタイプを比較し、同じ場合はハンドラーにメッセージを送る
     def dispatch(self, events):
         for event in events:
             for event_type, handlers in self._handlers.items():
@@ -262,9 +269,11 @@ class EventDispatcher:
 
 
 class OrderPaidHandler(EventHandler):
+    #senderにはReceiptSenderを継承したクラスを渡す(EmailReceiptSenderなどの送信方法)
     def __init__(self, sender: ReceiptSender):
         self._sender = sender
 
+    #各senderのsend()を呼び出す
     def handle(self, event: OrderPaid):
         self._sender.send(f"Payment completed: {event.amount}")
 

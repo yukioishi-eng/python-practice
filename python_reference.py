@@ -74,6 +74,7 @@ print(list(map(str, data)))     #['1', '7', '3', '1', '4', '8', '1', '2', '3', '
 #リストの要素の文字列化と結合
 print("".join(list(map(str, data))))    #17314812314
 
+
 #joinのジェネレータ式を使った書き方
 stamp = [
     ["abc", "def"],
@@ -86,3 +87,34 @@ print("".join(stamp[s - 1][i] for s in sort_order))
 # 通常、for文は1つずつ値を取り出して処理するため、一見すると join() の引数として渡せないように見える。
 # しかし、この書き方は「ジェネレータ式」と呼ばれ、 "abc" → "ghi" → "abc" を1つずつ生成する。
 # join() は生成された文字列を順番に受け取り、 ["abc", "ghi", "abc"] が渡されたかのように連結して"abcghiabc" を返す。
+
+
+#文字列の分割
+s = "abc def ghi"
+print(s.split())    #['abc', 'def', 'ghi']
+#引数がなければ空白文字で分割される
+
+time = "07:11"
+print(time.split(":"))    #['07', '11']
+
+text = "apple banana cherry"
+print(text.split(None,1))    #['apple', 'banana cherry']
+#split()の第2引数は最大分割数を指定できる
+
+
+#イテラブルのインデックスと要素の取得
+#最大値が複数ある時にenumerate()を用いる
+num = [4, 2, 7, 14, 8, 14]
+max_score = max(num)
+result = [i for i, n in enumerate(num) if n == max_score]
+print(result)    #[3, 5]
+
+
+#アンパック演算子
+#リストの要素を1つずつ展開して引数に渡すことができる
+A = [1, 2, 3]
+print(*A)    #1 2 3
+print(*A, sep=",")    #1,2,3
+print(*A, sep = "\n")    #1
+                         #2
+                         #3

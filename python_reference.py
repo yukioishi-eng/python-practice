@@ -118,3 +118,26 @@ print(*A, sep=",")    #1,2,3
 print(*A, sep = "\n")    #1
                          #2
                          #3
+
+
+#イテラブルの要素をカウント
+l = [1, 2, 3, 1, 2, 1]
+print(l.count(1))    #3
+
+#Python標準ライブラリcollectionsにCounterクラスがある
+#collections.Counter()にリストやタプルを渡すと、Counterオブジェクトが生成される
+#Counterは辞書型dictのサブクラスで、キーに要素、値に出現回数という形のデータを持つ
+#Counterに辞書型のkeys()やvalues()を使うこともできる
+
+import collections
+c = collections.Counter(l)
+print(c)    #Counter({1: 3, 2: 2, 3: 1})
+print(c[1])    #3
+print(c.keys())    #dict_keys([1, 2, 3])
+
+
+#most_common()メソッドを使うと、出現回数順に要素を取得できる
+print(c.most_common(1))    #[(1, 3)]
+print(c.most_common(2))    #[(1, 3), (2, 2)]
+#most_common()の引数に整数を指定すると、上位n個の要素を取得できる
+#most_common()を使用すると、要素がタプルの形になる

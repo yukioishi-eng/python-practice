@@ -4,6 +4,7 @@ print(all([True, False, True]))     # False
 
 
 #リスト内包表記: リストの要素管理を1行で書く
+n = 2
 distances = []
 for _ in range(n - 1):
     d = int(input())
@@ -51,9 +52,11 @@ name = ["A", "B", "C"]
 age = [20, 30, 40]
 for n, a in zip(name, age):
     print(n, a)
+
 #リストの連続した組見合わせを探したいときには次のようなことにも使える
 data = [1, 7, 3, 1, 4, 8, 1, 2, 3, 1, 4]
 #リストの始まりを0, 1, 2としたリストを作成し、zipで組み合わせることで、連続した3つの要素を取得できる
+#イテラブルの隣の要素と比較するときに使える
 for a, b, c in zip(data, data[1:], data[2:]):
     if a == 3 and b == 1 and c == 4:
         print("314 found")
@@ -106,11 +109,13 @@ print(text.split(None,1))    #['apple', 'banana cherry']
 #最大値が複数ある時にenumerate()を用いる
 num = [4, 2, 7, 14, 8, 14]
 max_score = max(num)
+#enumerateはインデックス、要素を取得する関数
 result = [i for i, n in enumerate(num) if n == max_score]
 print(result)    #[3, 5]
 
 
 #アンパック演算子
+#イテラブルを1つ開放する
 #リストの要素を1つずつ展開して引数に渡すことができる
 A = [1, 2, 3]
 print(*A)    #1 2 3
@@ -135,9 +140,68 @@ print(c)    #Counter({1: 3, 2: 2, 3: 1})
 print(c[1])    #3
 print(c.keys())    #dict_keys([1, 2, 3])
 
-
 #most_common()メソッドを使うと、出現回数順に要素を取得できる
 print(c.most_common(1))    #[(1, 3)]
 print(c.most_common(2))    #[(1, 3), (2, 2)]
 #most_common()の引数に整数を指定すると、上位n個の要素を取得できる
 #most_common()を使用すると、要素がタプルの形になる
+
+
+#組み合わせ
+from itertools import combinations
+data = [10, 20, 30, 40]
+#dataの要素から3つ選ぶ組み合わせをcombにタプルとして代入する
+for comb in combinations(data, 3):
+
+    print(comb)     #(10, 20, 30)
+                    #(10, 20, 40)
+                    #(10, 30, 40)
+                    #(20, 30, 40)
+
+#すべての組み合わせなら次のようにできる
+for i in range(1, len(data) + 1):
+    for comb in combinations(data, i):
+
+        print(comb)     #(10,)
+                        #(20,)
+                        #(30,)
+                        #(40,)
+                        #(10, 20)
+                        #(10, 30)
+                        #(10, 40)
+                        #(20, 30)
+                        #(20, 40)
+                        #(30, 40)
+                        #(10, 20, 30)
+                        #(10, 20, 40)
+                        #(10, 30, 40)
+                        #(20, 30, 40)
+                        #(10, 20, 30, 40)
+
+
+#ジェネレータ式の応用
+#行を店舗、列を書く商品として金額対照表
+prices = [
+    [1200, 800, 1500],
+    [1100, 850, 1400],
+    [1300, 900, 1600],
+]
+
+mean_A, mean_B, mean_C = (sum(p) // len(p) for p in zip(*prices))
+#zipには1次元配列などのイテラブルが入るので、pricesをアンパックしている
+#zipで作成したタプルの要素の返金を出し、変数に代入
+#代入するときは左側の変数から行われる
+
+print(mean_A, mean_B, mean_C)     #1200 850 1500
+
+
+#for文とelse
+data = ["Alice", "sam", "john"] 
+for d in data:
+    if d == "sum":
+        print("discover")
+        break
+
+else:
+    print("not applicable")
+#これはfor文のbreakがされなかったときにはelseの処理をする

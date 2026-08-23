@@ -491,3 +491,20 @@ df.columns を使うことで列名を変更できる
 ・ジェネレータ式の応用
 ・for文とelse
 """
+
+"""
+2026-08-23
+内容：
+・FastAPI()でアプリケーション本体を作成
+・FastAPIのインスタンスを作成
+・@app.get("/")を使ってGETリクエストを受け取る
+・URLごとに処理する関数を設定
+・/へGETリクエストが送られたときにread_root()が実行されることを学習
+・Pythonの辞書型{"message": "APIです"}を返す方法を学習
+"""
+from fastapi import FastAPI
+
+app = FastAPI()
+@app.get("/")
+def read_root():
+    return {"message": "APIです"}

@@ -16,6 +16,7 @@ distances = [int(input()) for _ in range(n - 1)]
 
 #不等号の向き
 #m >= aと書くよりa <= mと書いた方が直観的でわかりやすい
+#片方が0の場合、a > 0と書いた方が見やすい
 
 
 #for _ in range(n)

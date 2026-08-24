@@ -502,9 +502,32 @@ df.columns を使うことで列名を変更できる
 ・/へGETリクエストが送られたときにread_root()が実行されることを学習
 ・Pythonの辞書型{"message": "APIです"}を返す方法を学習
 """
-from fastapi import FastAPI
 
-app = FastAPI()
-@app.get("/")
-def read_root():
-    return {"message": "APIです"}
+"""
+2026-08-24
+内容：
+・デコレータの定義
+・デコレータの処理の流れ
+"""
+#デコレータの基本
+#デコレータとは関数に対して、コードの中身を変えずに処理を追加したり変更するもの
+
+def start_end(func):
+    def add_start_end(text):
+        print("start")
+        func(text)
+        print("end")
+    return add_start_end
+
+
+@start_end
+def add_hello(text):
+    print("hello " + text)
+
+add_hello("mother")
+
+#処理の流れ：
+#@start_endによって、add_hello関数がstart_end関数に渡される
+#add_helloという名前が返されたadd_start_end関数を参照するようになる
+#add_hello("mother")を実行すると、実際にはadd_start_end("mother")が実行される
+

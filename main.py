@@ -530,4 +530,83 @@ add_hello("mother")
 #@start_endによって、add_hello関数がstart_end関数に渡される
 #add_helloという名前が返されたadd_start_end関数を参照するようになる
 #add_hello("mother")を実行すると、実際にはadd_start_end("mother")が実行される
+#なので、呼び出し側が関数を呼び出しているんだけど、中身はデコレータの処理の中で関数が呼び出され、デコレータの処理を出力している
+
+#可変長引数
+def func1(*args):
+    print(args)
+func1(1, 3, 5)    #(1, 3, 5)
+#可変長引数は関数の引数の数が決まっていないときに使う
+#タプルとして関数に渡される
+
+def func2(*args):
+    result = "".join(args)
+    print(result)
+func2("a", "あ", "A")    #aあA
+
+#通常の変数との併用
+def func3(x, *args):
+    print(x)
+    print(args)
+func3(1, "a", "f", 2)     #(a, f, 2) 
+                          #1
+
+#通常の変数を後に書く場合
+def func4(*args, x):
+    print(x)
+    print(args)
+func4("a", "f", 2, x = 1)     #(a, f, 2) 
+                              #1
+#通常の変数をキーワード引数として指定する必要がある
+
+#辞書型で受け取る可変長引数
+def func(**kwargs):
+    print(kwargs)
+func(name = "john", user_id = "02")                         #{'name': 'john', 'user_id': '02'}
+func(name = "george", user_id = "25", balance  = 100)       #{'name': 'george', 'user_id': '25', 'balance': 100}
+
+#変数名がキー、値がバリューとして辞書型を作成する
+
+#変数の数が決まっていない場合のデコレータ
+def start_end(func):
+    #可変長引数の2つの場合で書くことで、キーワード引数でも対応できる
+    def add_start_end(*args, **kwargs):
+        print('start')
+        func(*args, **kwargs)
+        print('end')
+    return add_start_end
+
+@start_end
+def no_solution():
+    print("解なし")
+
+@start_end
+def print_join_dash(a, b):
+    print(f'{a}-{b}')
+
+no_solution()
+print_join_dash('163', b='8001')
+
+#デコレータ側の引数を可変長引数にすることで、デコレートする関数の引数の数に縛られず、処理を行える
+
+#戻り値がある関数の場合
+def start_end(func):
+    def add_start_end(*args, **kwargs):
+        #関数の戻り値を受け取ってあげることで、xを使える状態にしつつ、デコレータの処理を行える
+        print('start')
+        x = func(*args, **kwargs)
+        print('end')
+        return x
+    return add_start_end
+
+@start_end
+def plus_1(a):
+    print("plus_1が実行されました")
+    return a + 1
+
+x = plus_1(4)
+print(x)    #start
+            #plus_1が実行されました
+            #end
+            #5
 

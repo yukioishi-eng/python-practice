@@ -16,6 +16,7 @@ Pythonの基礎・オブジェクト指向・ドメイン駆動設計（DDD）�
 
 ## 📁 ディレクトリ構成
 
+```text
 python-practice/
 ├── python_fundamentals/     # 基礎ロジック・オブジェクト指向・ドメイン設計
 │   └── order_system/        # 注文管理システム（メインプロジェクト）

@@ -14,3 +14,8 @@ res = requests.get("http://127.0.0.1:8000/items/sample")
 print(res.status_code)
 print(res.text)    #{"items_id":"sample","item_name":"Tシャツ"}
 #read_itemとread_sample_itemで処理が競合するが、read_itemが上に書いてある方が優先される
+
+res = requests.get("http://127.0.0.1:8000/items?step=2&limit=4")
+print(res.status_code)
+print(res.text)    #{"items":["スニーカー","靴下","パーカー"]}
+#クエリパラメータは指定しないとエラーが起きる

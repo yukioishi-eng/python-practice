@@ -19,3 +19,7 @@ res = requests.get("http://127.0.0.1:8000/items?step=2&limit=4")
 print(res.status_code)
 print(res.text)    #{"items":["スニーカー","靴下","パーカー"]}
 #クエリパラメータは指定しないとエラーが起きる
+
+res = requests.post("http://127.0.0.1:8000/items/", json = {"name": "Tシャツ", "price": 2000, "description": "白Tシャツ"})
+print(res.status_code)
+print(res.text)

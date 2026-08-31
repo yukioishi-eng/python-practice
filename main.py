@@ -534,6 +534,15 @@ df.columns を使うことで列名を変更できる
 ・Queryを用いた条件の設定
 ・クエリパラメータを含むAPIへのgetリクエスト
 """
+
+"""
+2026-08-31
+内容：
+・データの送信
+・BaseModel
+・Fieldによる変数の設定
+・Optionalによるデータ型の設定
+"""
 #FastAPIの基礎
 #client.pyからリクエストを送る
 from fastapi import FastAPI
@@ -575,3 +584,24 @@ def read_items(step: int, limit: Annotated[int, Query(ge = 1, le = 10)] = 10):
     
     return {"items": items[step: step + limit]}
     #[step: step + limit]はイテラブルのインデックス範囲を超えても実際の長さに抑えられる
+
+#データの送信(POST)
+from pydantic import BaseModel, Field
+from typing import Optional
+
+class Item(BaseModel):
+    name: str = Field(None, max_length = 100)
+    #Fieldは変数の設定をすることができ、FastAPIの設定に加え、min_length　最小文字数(str)、max_length　最大文字数(str)、max_digits	最大桁数などがある
+    #第1引数でデフォルト設定ができる
+
+    price: float = Field(lt = 99999999)
+    description: Optional[str]  = None
+    #Optionalはデータ型がNoneでも良いときに用いる(Union[str, None]と同義)
+#BaseModelは自動的にインスタンス作成時にデータ型のバリデーションをしたりする
+
+@app.post("/items/")
+def create_item(item: Item):
+    print(f"データを登録します：{item.name}, {item.price}, {item.description}")
+    return item
+
+

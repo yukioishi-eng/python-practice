@@ -519,10 +519,20 @@ df.columns を使うことで列名を変更できる
 """
 
 """
+2026-08-29
 内容：
 ・パスが可変のAPI
 ・辞書型での出力
 ・処理の競合(上に書かれている方が優先される)
+"""
+
+"""
+2026-08-30
+内容：
+・クエリパラメータを含むAPI
+・Annotatedを用いた型ヒントのメタデータの追加
+・Queryを用いた条件の設定
+・クエリパラメータを含むAPIへのgetリクエスト
 """
 #FastAPIの基礎
 #client.pyからリクエストを送る
@@ -541,6 +551,7 @@ def read_root():
 @app.get("/items/{items_id}")
 def read_item(items_id):
 #パスのitems_idに入れたものが関数の引数に代入される
+
     return {"items_id": items_id, "item_name": "Tシャツ"}
     #一般的にキーと値の組で出力するので、辞書型が望ましい
 
@@ -548,3 +559,19 @@ def read_item(items_id):
 def read_sample_item():
     return {"item_id": "サンプルデータ"}
 #read_itemとread_sample_itemで処理が競合するが、read_itemが上に書いてある方が優先される
+
+#クエリパラメータ
+from fastapi import Query
+from typing import Annotated
+
+items = ["Tシャツ", "スカート", "スニーカー", "靴下", "パーカー"]
+#通常はデータベース管理
+
+@app.get("/items")
+def read_items(step: int, limit: Annotated[int, Query(ge = 1, le = 10)] = 10):
+    #Annotatedは型ヒントに追加のメタデータをくっつける仕組み
+    #Queryは指定した引数がクエリパラメータ(パスの?以降のキー＝値のこと)であることとバリデーションルールをFastAPIに伝える役割
+    #geで以上、leで以下、gtでより大きい、ltでより小さい
+    
+    return {"items": items[step: step + limit]}
+    #[step: step + limit]はイテラブルのインデックス範囲を超えても実際の長さに抑えられる

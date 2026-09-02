@@ -543,6 +543,20 @@ df.columns を使うことで列名を変更できる
 ・Fieldによる変数の設定
 ・Optionalによるデータ型の設定
 """
+
+"""
+2026-09-01
+内容：
+・ヘッダーの理解
+・Headerを用いたヘッダー情報の取得
+・リクエスト側のヘッダーの設定
+"""
+
+"""
+2026-09-02
+内容：
+
+"""
 #FastAPIの基礎
 #client.pyからリクエストを送る
 from fastapi import FastAPI
@@ -604,4 +618,45 @@ def create_item(item: Item):
     print(f"データを登録します：{item.name}, {item.price}, {item.description}")
     return item
 
+#ヘッダー
+#ヘッダとは通信時に送信することで通信の制御や認証などに使われる情報(郵便でいう宛名や差出人、郵便番号などの情報)
+#ヘッダーは通信の中継ソフトウェアとサーバ側で受け取られ、処理が行われる
 
+#                           HTTPヘッダー早見表
+# ヘッダー名           | 役割                          | 例
+# --------------------|-------------------------------|----------------------------------------
+# Host                | どのドメイン宛かを示す          | Host: example.com
+# User-Agent          | クライアントの種類を示す         | User-Agent: Mozilla/5.0
+# Accept              | 受け取りたいデータ形式を伝える     | Accept: application/json
+# Content-Type        | ボディのデータ形式を伝える        | Content-Type: application/json
+# Content-Length       | ボディのバイト数                | Content-Length: 348
+# Authorization       | 認証情報(誰からのリクエストか)    | Authorization: Bearer eyJhbGc...
+# Cookie              | クライアントが保持するCookieを送信 | Cookie: session_id=abc123
+# Set-Cookie          | サーバーがCookieを設定           | Set-Cookie: session_id=abc123; HttpOnly
+# Cache-Control       | キャッシュの可否・期限を指定       | Cache-Control: no-cache
+# ETag                | リソースのバージョン識別子        | ETag: "33a64df5"
+# Accept-Encoding     | 対応する圧縮方式を伝える          | Accept-Encoding: gzip, deflate
+# Content-Encoding     | ボディの圧縮方式を伝える          | Content-Encoding: gzip
+# Referer             | どのページから遷移してきたか       | Referer: https://example.com/page
+# Origin              | リクエスト元のオリジン(CORS用)    | Origin: https://example.com
+# X-Request-ID        | リクエストの追跡用ID(独自拡張)    | X-Request-ID: 7f3e2b1a
+# X-API-Key           | APIキーによる認証(独自拡張)      | X-API-Key: abcdef123456
+# ============================================================
+from fastapi import Header, Response
+
+@app.get("/sample/")
+def read_sample(
+        response: Response,
+        authorization: Annotated[Optional[str], Header()] = None
+    #デフォルト値がない変数はある変数の前に定義する必要がある(pythonの仕様)
+):
+    #authorizationは認証・認可をするための情報
+    #authorizationヘッダーの値を受け取る。もし送られてこなければNone
+    #ヘッダ名は大文字にしても小文字にしても受け取れる
+    #ヘッダ名は標準化されているので、大文字小文字の違い以外は変えることができない
+
+    print(authorization)
+    response.headers["custom-header"] = "12345"
+    #レスポンスヘッダーへの追加
+    #レスポンスヘッダーとはサーバーがクライアントに送信するヘッダー情報のことを指す
+    return {"message": "ヘッダー情報を受け取りました"}

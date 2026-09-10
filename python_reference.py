@@ -206,3 +206,21 @@ for d in data:
 else:
     print("not applicable")
 #これはfor文のbreakがされなかったときにはelseの処理をする
+
+
+#配列の値がすべて等しいか判定する
+data1 = [1, 1, 1, 1]
+data2 = [1, 2, 1, 1]
+def judgement1(data):
+    return len(set(data)) == 1
+    #set()で重複を削除し、要素数が1であればすべての要素が等しい
+
+def judgement2(data):
+    return all(x == data[0] for x in data)
+    #データの要素すべてと最初の要素を比較した結果がall()でTrueであればすべての要素が等しい
+
+print(judgement1(data1))    #True
+print(judgement2(data1))    #True
+print(judgement1(data2))    #False
+print(judgement2(data2))    #False
+

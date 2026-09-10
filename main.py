@@ -568,6 +568,13 @@ df.columns を使うことで列名を変更できる
 ・awaitによる非同期処理の完了待ち
 ・関数の切り出し
 """
+
+"""
+2026-09-10
+内容：
+・async.create_task()によるタスクの生成
+・タスクの並行処理
+"""
 #async / await 構文
 #非同期処理とは処理の完了を待たずに次の処理を実行すること
 import asyncio
@@ -588,6 +595,7 @@ if __name__ == "__main__":
 #importされて実行された場合は、スクリプトのファイル名が入る
 #if __name__ == "__main__"とは直接実行が起きた場合という条件である
 
+
 #関数の切り出し
 async def wait(wait_time):
 #関数の処理内にawaitを使っているので、切り出した関数もコルーチンにする必要がある
@@ -595,7 +603,7 @@ async def wait(wait_time):
     await asyncio.sleep(wait_time)
     return f"{wait_time}秒の待機が終了しました"
 
-async def measurement():
+async def measurement1():
     print(f"開始 {time.strftime('%X')}")
     result_1 = await wait(1)
     #コルーチンの関数にもawaitをつける
@@ -605,4 +613,21 @@ async def measurement():
     print(f"終了 {time.strftime('%X')}")
 
 if __name__ == "__main__":
-    asyncio.run(measurement())
+    asyncio.run(measurement1())
+
+
+#並行処理
+async def measurement2():
+    print(f"開始 {time.strftime('%X')}")
+    task1 = asyncio.create_task(wait(1))
+    task2 = asyncio.create_task(wait(2))
+    #create_task()を使うことで、非同期処理を並行して実行できる
+    await task1
+    await task2
+    #taskは並列処理される(2秒の待機となる)
+    print(f"{task1.result()}")
+    print(f"{task2.result()}")
+    print(f"終了 {time.strftime('%X')}")
+
+if __name__ == "__main__":
+    asyncio.run(measurement2())

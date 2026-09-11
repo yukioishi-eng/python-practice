@@ -575,6 +575,14 @@ df.columns を使うことで列名を変更できる
 ・async.create_task()によるタスクの生成
 ・タスクの並行処理
 """
+
+"""
+2026-09-11
+内容：
+・async.gather()による複数のコルーチンやタスクの並列処理
+・通常の関数を非同期関数に変換する
+・run_in_executor()による通常の関数を非同期関数として実行する
+"""
 #async / await 構文
 #非同期処理とは処理の完了を待たずに次の処理を実行すること
 import asyncio
@@ -631,3 +639,29 @@ async def measurement2():
 
 if __name__ == "__main__":
     asyncio.run(measurement2())
+
+
+#複数のコルーチンやタスクの並列処理(gather)
+async def measurement3():
+    print(f"開始 {time.strftime('%X')}")
+    task1 = asyncio.create_task(wait(1))
+    results = await asyncio.gather(wait(2), task1)
+    #複数のコルーチン(wait(2))やタスク(task1)をまとめて並列処理し、結果をまとめて取得できる
+
+    print(results)    #['2秒の待機が終了しました', '1秒の待機が終了しました']
+    #受け取った結果をリストにする
+
+    print(f"終了 {time.strftime('%X')}")
+
+if __name__ == "__main__":
+    asyncio.run(measurement3())
+
+
+#通常の関数を非同期関数に変換する
+async def wait2(sec):
+    print(f"{sec}秒の待機を開始します")
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, time.sleep, sec)
+    #run_in_executor()を使うことで、通常の関数(time.sleep)を非同期関数として実行できる
+
+    return f"{sec}秒の待機が終了しました"

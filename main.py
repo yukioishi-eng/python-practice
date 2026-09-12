@@ -583,6 +583,12 @@ df.columns を使うことで列名を変更できる
 ・通常の関数を非同期関数に変換する
 ・run_in_executor()による通常の関数を非同期関数として実行する
 """
+
+"""
+2026-09-12
+内容：
+・async.wait_for()によるタイムアウト処理
+"""
 #async / await 構文
 #非同期処理とは処理の完了を待たずに次の処理を実行すること
 import asyncio
@@ -665,3 +671,22 @@ async def wait2(sec):
     #run_in_executor()を使うことで、通常の関数(time.sleep)を非同期関数として実行できる
 
     return f"{sec}秒の待機が終了しました"
+
+if __name__ == "__main__":
+    asyncio.run(wait2(3))
+
+
+#タイムアウト
+async def measurement4():
+    print(f"開始 {time.strftime('%X')}")
+    try:
+        results = await asyncio.wait_for(wait2(5), timeout=3)
+        #wait_for()を使うことで、指定した時間内に処理が完了しなかった場合にTimeoutErrorを発生させることができる
+
+        print(results)
+    except asyncio.TimeoutError:
+        print("タイムアウト")
+    print(f"終了 {time.strftime('%X')}")
+
+if __name__ == "__main__":
+    asyncio.run(measurement4())

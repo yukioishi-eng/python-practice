@@ -37,3 +37,30 @@ print(res.text)     #{"message":"ヘッダー情報を受け取りました"}
 print(res.headers)
 #{'date': 'Wed, 02 Sep 2026 11:31:09 GMT', 'server': 'uvicorn', 'content-length': '56', 'content-type': 'application/json', 'custom-header': '12345'}
 #'custom-header': '12345'が追加されている
+
+#非同期処理に対するリクエストの送信
+import asyncio
+import time
+
+async def sleep_time(sec):
+    loop = asyncio.get_running_loop()
+    res = await loop.run_in_executor(
+        None, requests.get, f"http://127.0.0.1:8000/sleep_time/?sec={sec}"
+    )
+    #requests.getは通常の関数なので、非同期関数にしている
+
+    return res.text
+#この関数はrequests.getを利用するための関数でAPI内のsleep_time関数とは関係がない
+
+async def main():
+    print(f"main開始{time.strftime("%X")}")
+    results = await asyncio.gather(sleep_time(1), sleep_time(2))
+    print(results)
+    print(f"main終了{time.strftime("%X")}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+#main開始22:37:40
+#['{"message":"1秒"}', '{"message":"2秒"}']
+#main終了22:37:42

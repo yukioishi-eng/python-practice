@@ -597,3 +597,44 @@ df.columns を使うことで列名を変更できる
 ・非同期によるリクエスト
 """
 
+"""
+2026-09-14
+"""
+from order_system_v5 import (
+    Order,
+    OrderId,
+    OrderPaid,
+    InMemoryOrderRepository,
+    InMemoryUserRepository,
+    InMemoryProductRepository,
+    PayOrderUseCase,
+    User,
+    Product,
+    EventDispatcher,
+    OrderPaidHandler,
+    EmailReceiptSender,
+    InsufficientBalanceError,
+    OutOfStockError,
+)
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+order_repo = InMemoryOrderRepository()
+order1 = Order(OrderId(1), 1, 101)
+order_repo.save(order1)
+
+@app.get("/")
+def health_check():
+    return {"message": "Order API is running"}
+
+@app.get("/orders/{order_id}")
+def get_order(order_id: int):
+    orderid = OrderId(order_id)
+    order = order_repo.get(orderid)
+    return {
+        "order_id": order.id.value,
+        "status": order.status.name
+        #Enumのnameは状態の左辺を指定する(CREATED = auto())
+    }

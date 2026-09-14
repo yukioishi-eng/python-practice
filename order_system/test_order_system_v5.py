@@ -1,6 +1,6 @@
 import pytest
 
-from order_system.order_system_v5 import (
+from order_system_v5 import (
     Order,
     OrderId,
     OrderPaid,

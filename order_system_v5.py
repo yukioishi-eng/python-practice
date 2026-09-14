@@ -184,6 +184,10 @@ class Order:
     def events(self):
         return list(self._events)
 
+    @property
+    def status(self):
+        return self._status
+
     def clear_events(self):
         self._events.clear()
 

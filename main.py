@@ -596,15 +596,4 @@ df.columns を使うことで列名を変更できる
 ・FastAPIでの非同期処理の方法
 ・非同期によるリクエスト
 """
-#非同期処理
-#FastAPIは非同期処理に対応していて、awaitを使える関数にasyncをつけることでできる
-from fastapi import FastAPI
-import asyncio
-
-app = FastAPI()
-
-@app.get("/sleep_time/")
-async def sleep_time(sec: int):
-    await asyncio.sleep(sec)
-    return {"message": f"{sec}秒"}
 

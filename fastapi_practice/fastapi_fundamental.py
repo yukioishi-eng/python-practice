@@ -101,3 +101,16 @@ def read_sample(
     #レスポンスヘッダーへの追加
     #レスポンスヘッダーとはサーバーがクライアントに送信するヘッダー情報のことを指す
     return {"message": "ヘッダー情報を受け取りました"}
+
+
+#非同期処理
+#FastAPIは非同期処理に対応していて、awaitを使える関数にasyncをつけることでできる
+from fastapi import FastAPI
+import asyncio
+
+app = FastAPI()
+
+@app.get("/sleep_time/")
+async def sleep_time(sec: int):
+    await asyncio.sleep(sec)
+    return {"message": f"{sec}秒"}

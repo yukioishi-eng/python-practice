@@ -29,10 +29,25 @@ ans += "c"
 #数式と同じように代入できる
 
 
-#指定した位置の要素を削除し、値を取得
+#要素の削除
+#指定したインデックスの要素を削除し、値を取得
 l = [0, 10, 20, 30, 40, 50]
-popped_item = l.pop(0)
+popped_item = l.pop(0)    #0
 #こうすることで、lから0番目の要素を削除し、削除した値をpopped_itemに代入できる
+
+#すべての要素を削除
+l.clear()
+#lの要素をすべて削除する
+
+#値から要素を削除
+l = ['Alice', 'Bob', 'Charlie', 'Bob', 'Dave']
+l.remove("Bob")    #['Alice', 'Charlie', 'Bob', 'Dave']
+#指定した要素が複数存在する時は最初の1つを削除する
+
+#指定したインデックスの要素を削除
+l = [0, 10, 20, 30, 40, 50]
+del l[1]    #[0, 20, 30, 40, 50]
+#2: 5のようにスライスで範囲指定しても削除できる
 
 
 #値からインデックスを取得
@@ -223,4 +238,22 @@ print(judgement1(data1))    #True
 print(judgement2(data1))    #True
 print(judgement1(data2))    #False
 print(judgement2(data2))    #False
+
+
+#リストを逆順にする
+l = [1, 2, 3, 4, 5]
+l.reverse()
+print(l)    #[5, 4, 3, 2, 1]
+print(l.reverse())    #None
+#l.reverse()を出力しようとすると、Noneが返る
+
+L = list(reversed(l))    #[5, 4, 3, 2, 1]
+print(reversed(l))     #<list_reverseiterator object at 0x417386b128f0>
+#reversed()の結果はイテレータ(配列やリストなどのデータ構造に含まれる要素を順番に一つずつ取り出すための機能やオブジェクト)なので、そのまま出力すると、仕組みが出てくる
+
+
+#小数点切り捨て、切り上げ
+import math
+print(math.floor(10 / 3))    #3
+print(math.ceil(10 / 3))    #4
 

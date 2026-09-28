@@ -257,3 +257,44 @@ import math
 print(math.floor(10 / 3))    #3
 print(math.ceil(10 / 3))    #4
 
+
+#リスト内包表記とジェネレータ式の違い
+print([x for x in range(3)])   # [0, 1, 2]     リスト内包表記は中身が作られる
+g = (x * 2 for x in range(3))
+print(next(g))    #0
+print(next(g))    #2
+print(next(g))    #4
+
+print((x for x in range(3)))   # <generator object ...>   ジェネレータは作られない
+
+#ジェネレータ式は値を1つずつ、要求されたときに作って返すオブジェクトなので、そのままprintすると、ジェネレータ自体を出力することになる
+#中身を知りたいときは*やfor文,listなど処理を与えれば参照できる
+
+
+#標準入力の高速な受け取り
+import sys
+data = sys.stdin.read().split()
+#sys.stdin.read()は標準入力を丸ごと読み込む
+#入力
+#5 8
+#00000100
+#00001100
+#00011100
+#00111110
+#11111111
+
+#出力
+# ['5', '8', '00000100', '00001100', '00011100', '00111110', '11111111']
+
+
+#累積和・累積積
+l = [1, 2, 3, 4, 5, 6]
+import itertools
+import operator
+
+print(*(itertools.accumulate(l)))    #1 3 6 10 15 21
+
+#ジェネレータを生成するので注意
+
+print(*(itertools.accumulate(l, func=operator.mul)))     #1 2 6 24 120 720
+#operatorをインポートし、func=operator.mulを引数にとることで累積積を出力する

@@ -282,7 +282,7 @@ pytest導入・実行確認
 ・Repositoryパターン導入
 ・OrderRepository を抽象クラスとして定義
 ・InMemoryOrderRepository を実装
-・execute() でorder_repo.get()、order_repo.save()の実装
+・execute() で.get()、order_repo.save()の実装
 ・EmailReceiptSender、SlackReceiptSender、LINEReceiptSender
 ・transition を最後にする理由
 ・Aggregateの整合性を守る
@@ -617,13 +617,28 @@ from order_system_v5 import (
     OutOfStockError,
 )
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
 
 order_repo = InMemoryOrderRepository()
 order1 = Order(OrderId(1), 1, 101)
 order_repo.save(order1)
+
+user_repo = InMemoryUserRepository()
+user1 = User(user_id=1, balance=5000)
+user_repo.save(user1)
+
+product_repo = InMemoryProductRepository()
+product1 = Product(product_id=101, price=1000, stock=5)
+product_repo.save(product1)
+
+dispatcher = EventDispatcher()
+dispatcher.register(OrderPaid, OrderPaidHandler(EmailReceiptSender()))
+pay_order_usecase = PayOrderUseCase(order_repo, user_repo, product_repo, dispatcher)
+
+
+
 
 @app.get("/")
 def health_check():
@@ -632,9 +647,12 @@ def health_check():
 @app.get("/orders/{order_id}")
 def get_order(order_id: int):
     orderid = OrderId(order_id)
-    order = order_repo.get(orderid)
-    return {
-        "order_id": order.id.value,
-        "status": order.status.name
-        #Enumのnameは状態の左辺を指定する(CREATED = auto())
-    }
+    try:
+        order = order_repo.get(orderid)
+        return {
+            "order_id": order.id.value,
+            "status": order.status.name
+            #Enumのnameは状態の左辺を指定する(CREATED = auto())
+        }
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Order not found")

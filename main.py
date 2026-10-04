@@ -608,3 +608,68 @@ df.columns を使うことで列名を変更できる
 ・支払処理の例外処理
 ・Order作成APIの作成
 """
+
+"""
+2026-19-05
+内容:
+・アプリ経由でのrequestのテスト(TestClient)
+・Order取得テスト
+・存在しないOrderの取得テスト
+・Order作成テスト
+・支払いテスト
+・存在しない支払いテスト
+"""
+
+import pytest
+from fastapi.testclient import TestClient
+from order_system.order_system_API import app 
+
+
+from order_system.order_system_v5 import (
+    Order,
+    OrderId,
+    OrderPaid,
+    InMemoryOrderRepository,
+    InMemoryUserRepository,
+    InMemoryProductRepository,
+    PayOrderUseCase,
+    User,
+    Product,
+    EventDispatcher,
+    OrderPaidHandler,
+    EmailReceiptSender,
+    InsufficientBalanceError,
+    OutOfStockError,
+)
+
+#APIテスト
+client = TestClient(app)
+
+def test_get_order_success():
+    res = client.get("/orders/1")
+    assert res.status_code == 200
+    assert res.json()["order_id"] == 1
+
+def test_get_order_not_found():
+    res = client.get("/orders/999")
+    assert res.status_code == 404
+
+def test_create_order():
+    res = client.post(
+        "/orders", 
+        json = {"order_id": 2, "user_id": 1, "product_id": 101}
+    )
+    assert res.status_code == 200
+
+    #json形式のものにjson()をつけると、辞書型に変換される
+    assert res.json()["message"] == "Order created successfully"
+    assert res.json()["order_id"] == 2
+
+def test_pay_order_success():
+    res = client.post("/orders/1/pay")
+    assert res.status_code == 200
+    assert res.json()["注文が完了しました"] == "PAID"
+
+def test_pay_order_not_found():
+    res = client.post("/orders/999/pay")
+    assert res.status_code == 404

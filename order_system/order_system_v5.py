@@ -21,6 +21,7 @@ class InvalidStateTransitionError(OrderError):
 class DomainEvent:
     pass
 
+#注文が支払い済みであることを表すクラス
 class OrderPaid(DomainEvent):
     def __init__(self, order_id, amount: int):
         self.order_id = order_id
@@ -205,6 +206,7 @@ class Order:
     def mark_as_paid(self, amount):
         self._paid_amount = amount
         self._transition(OrderAction.PAY)
+        #eventsにOrderPaidイベントを追加する
         self._events.append(OrderPaid(self._id, amount))
 
 
@@ -260,6 +262,7 @@ class EventDispatcher:
 
     #外からイベントタイプとハンドラーを登録し、イベントが起こったときの連絡先を保持するメソッド
     #setdefaultは第一引数に指定したキーがすでに存在している場合は、第二引数にどんな値を指定しても辞書は元のまま変更されない配列追加メソッド
+    #event_typeにはクラスが入る(OrderPaidなど)、handlerにはOrderPaidHandlerなどのインスタンスが入る
     def register(self, event_type, handler):
         self._handlers.setdefault(event_type, []).append(handler)
 
@@ -272,6 +275,7 @@ class EventDispatcher:
                         handler.handle(event)
 
 
+#それぞれの方法(sender)で注文が支払われたことを通知するハンドラー
 class OrderPaidHandler(EventHandler):
     #senderにはReceiptSenderを継承したクラスを渡す(EmailReceiptSenderなどの送信方法)
     def __init__(self, sender: ReceiptSender):
